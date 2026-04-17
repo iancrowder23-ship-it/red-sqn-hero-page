@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Red Squadron</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+
+<body>
+    <!-- Fun Background Animation Elements -->
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <img src="logo.png" alt="Red Squadron Logo" class="nav-logo-img">
+            <span class="nav-logo-text">Red Squadron</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html" class="active">About</a></li>
+            <li><a href="roster.html">Roster</a></li>
+            <li><a href="#operations">Operations</a></li>
+        </ul>
+        <a href="#join" class="btn-nav">Enlist Now</a>
+    </nav>
+
+    <main class="page-content">
+        <div class="content-box">
+            <h1 class="reveal-text" style="font-size: 3.5rem;">About <span class="gradient-text">Red Squadron</span></h1>
+            <p class="fade-up-text" style="text-align: left; max-width: 100%;">
+                Welcome to Red Squadron, a branch of the Joint Special Operations Command. We are a premier military simulation community dedicated to authentic tactics and cohesive teamwork.
+                <br><br>
+                [This is a placeholder for your About Page. You can expand on your history, mission, requirements, and community rules here.]
+                <br><br>
+                Our members are held to a high standard of tactical realism, operating in diverse environments to complete complex objectives. Join us to experience unforgettable operations and form lasting bonds with your squadmates.
+            </p>
+        </div>
+    </main>
+
+    <!-- Smooth Interactive Script -->
+    <script>
+        // Subtle mouse tracking parallax for the background orbs
+        document.addEventListener('mousemove', (e) => {
+            const orbs = document.querySelectorAll('.orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            // Move orbs slightly opposite to the cursor
+            orbs[0].style.transform = `translate(${x * 60}px, ${y * 60}px)`;
+            orbs[1].style.transform = `translate(${x * -60}px, ${y * -60}px)`;
+        });
+    </script>
+</body>
+
+</html>

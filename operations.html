@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations | Red Squadron</title>
+    <meta name="description" content="After-action reports and operation logs of Red Squadron.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="operations.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <img src="logo.png" alt="Red Squadron Logo" class="nav-logo-img">
+            <span class="nav-logo-text">Red Squadron</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="roster.html">Roster</a></li>
+            <li><a href="operations.html" class="active">Operations</a></li>
+        </ul>
+        <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
+    </nav>
+
+    <main class="ops-page">
+        <div class="ops-header">
+            <div class="pill-badge" style="opacity:1; animation:none;">
+                <span class="pulse-dot"></span> After-Action Reports
+            </div>
+            <h1 class="reveal-text" style="font-size: clamp(2.5rem,6vw,4.5rem); letter-spacing:-2px;">
+                Operations <span class="gradient-text">Log</span>
+            </h1>
+            <p class="fade-up-text" style="font-size:1rem;">
+                Classified mission records of Red Squadron. Scroll to review completed and active operations.
+            </p>
+        </div>
+
+        <div class="ops-feed" id="opsFeed">
+            <!-- Posts rendered by JS from data.js -->
+        </div>
+    </main>
+
+    <script src="data.js"></script>
+    <script>
+        // Set discord link
+        document.getElementById('nav-enlist').href = DISCORD_LINK;
+
+        // Orb parallax
+        document.addEventListener('mousemove', (e) => {
+            const orbs = document.querySelectorAll('.orb');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            orbs[0].style.transform = `translate(${x * 60}px, ${y * 60}px)`;
+            orbs[1].style.transform = `translate(${x * -60}px, ${y * -60}px)`;
+        });
+
+        // Render operations from data.js
+        function getStatusBadge(status) {
+            const map = {
+                success:    { cls: 'status-op-success',    label: '✓ Success' },
+                failure:    { cls: 'status-op-failure',    label: '✗ Failed' },
+                ongoing:    { cls: 'status-op-ongoing',    label: '● Ongoing' },
+                classified: { cls: 'status-op-classified', label: '⬛ Classified' }
+            };
+            const s = map[status] || map.classified;
+            return `<span class="op-status-badge ${s.cls}">${s.label}</span>`;
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        const feed = document.getElementById('opsFeed');
+
+        // Sort newest first
+        const sorted = [...OPERATIONS].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sorted.forEach((op, i) => {
+            const tags = op.tags.map(t => `<span class="op-tag">${t}</span>`).join('');
+            const participants = op.participants.map(p => `<span class="op-participant">${p}</span>`).join('');
+
+            const card = document.createElement('article');
+            card.className = 'op-card';
+            card.style.animationDelay = `${i * 0.12}s`;
+            card.innerHTML = `
+                <div class="op-card-header">
+                    <div class="op-card-meta">
+                        <span class="op-id">#${String(op.id).padStart(3, '0')}</span>
+                        <span class="op-date">${formatDate(op.date)}</span>
+                        <span class="op-theater">📍 ${op.theater}</span>
+                    </div>
+                    ${getStatusBadge(op.status)}
+                </div>
+
+                <div class="op-card-title-row">
+                    <h2 class="op-title">${op.title}</h2>
+                    <span class="op-type">${op.type}</span>
+                </div>
+
+                <div class="op-posted-by">
+                    <img src="logo.png" alt="" class="op-avatar">
+                    <div>
+                        <span class="op-author">Posted by ${op.commanderCallsign}</span>
+                        <span class="op-role">Commanding Officer</span>
+                    </div>
+                </div>
+
+                <p class="op-summary">${op.summary}</p>
+
+                <details class="op-details-block">
+                    <summary class="op-details-toggle">Full After-Action Report</summary>
+                    <div class="op-details-body">${op.details}</div>
+                </details>
+
+                <div class="op-footer">
+                    <div class="op-participants-wrap">
+                        <span class="op-participants-label">Personnel:</span>
+                        <div class="op-participants">${participants}</div>
+                    </div>
+                    <div class="op-tags">${tags}</div>
+                </div>
+            `;
+            feed.appendChild(card);
+        });
+    </script>
+</body>
+
+</html>
