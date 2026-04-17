@@ -22,7 +22,41 @@ const SITE_INFO = {
         <br><br>
         Whether you're a seasoned operator or eager to prove yourself, Red Squadron has a place 
         for those who meet our standard.
-    `
+    `,
+    stats: [
+        { value: "2024", label: "Established" },
+        { value: "15+", label: "Active Operators" },
+        { value: "100%", label: "Mission Focus" }
+    ],
+    bentoBoxes: {
+        roster: {
+            title: "Elite Roster",
+            description: "Meet the operators executing high-stakes missions."
+        },
+        operations: {
+            title: "Operations Log",
+            description: "Declassified AARs from recent deployments."
+        }
+    },
+    pageHeaders: {
+        roster: {
+            badge: "Active Personnel",
+            titleNormal: "Elite",
+            titleHighlight: "Roster",
+            subtitle: "Meet the operators executing high-stakes missions."
+        },
+        operations: {
+            badge: "After-Action Reports",
+            titleNormal: "Operations",
+            titleHighlight: "Log",
+            subtitle: "Classified mission records of Red Squadron."
+        },
+        about: {
+            badge: "The Manifesto",
+            titleNormal: "About",
+            titleHighlight: "Us"
+        }
+    }
 };
 
 // --- ROSTER ---

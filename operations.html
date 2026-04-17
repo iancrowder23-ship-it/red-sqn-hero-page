@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Operations | Red Squadron</title>
     <meta name="description" content="After-action reports and operation logs of Red Squadron.">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="operations.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/operations.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
-
 <body>
     <div class="background-orbs">
         <div class="orb orb-1"></div>
@@ -22,56 +17,57 @@
 
     <nav class="navbar">
         <a href="index.html" class="logo">
-            <img src="logo.png" alt="Red Squadron Logo" class="nav-logo-img">
+            <img src="assets/logo.png" alt="Red Squadron Logo" class="nav-logo-img">
             <span class="nav-logo-text">Red Squadron</span>
         </a>
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
-            <li><a href="index.html#about">About</a></li>
+            <li><a href="about.html">About</a></li>
             <li><a href="roster.html">Roster</a></li>
             <li><a href="operations.html" class="active">Operations</a></li>
         </ul>
         <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
     </nav>
 
-    <main class="ops-page">
-        <div class="ops-header">
-            <div class="pill-badge" style="opacity:1; animation:none;">
-                <span class="pulse-dot"></span> After-Action Reports
+    <main class="page-container">
+        <div class="ops-header fade-in-up">
+            <div class="badge" style="margin-bottom: 1.5rem;">
+                <span class="badge-dot"></span> <span id="page-badge">After-Action Reports</span>
             </div>
-            <h1 class="reveal-text" style="font-size: clamp(2.5rem,6vw,4.5rem); letter-spacing:-2px;">
-                Operations <span class="gradient-text">Log</span>
+            <h1 class="hero-title" style="font-size: clamp(3rem, 6vw, 5rem); margin: 0 0 1rem;">
+                <span id="page-title-normal">Operations</span> <span class="text-gradient-accent" id="page-title-highlight">Log</span>
             </h1>
-            <p class="fade-up-text" style="font-size:1rem;">
-                Classified mission records of Red Squadron. Scroll to review completed and active operations.
-            </p>
+            <p class="hero-subtitle" id="page-subtitle">Classified mission records of Red Squadron.</p>
         </div>
 
-        <div class="ops-feed" id="opsFeed">
-            <!-- Posts rendered by JS from data.js -->
+        <div class="ops-feed fade-in-up delay-2" id="opsFeed">
+            <!-- Posts rendered by JS -->
         </div>
     </main>
 
-    <script src="data.js"></script>
+    <script src="js/data.js"></script>
     <script>
-        // Set discord link
         document.getElementById('nav-enlist').href = DISCORD_LINK;
 
-        // Orb parallax
+        // Populate Header
+        document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.operations.badge;
+        document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.operations.titleNormal;
+        document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.operations.titleHighlight;
+        document.getElementById('page-subtitle').innerText = SITE_INFO.pageHeaders.operations.subtitle;
+
+        // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
         document.addEventListener('mousemove', (e) => {
-            const orbs = document.querySelectorAll('.orb');
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
-            orbs[0].style.transform = `translate(${x * 60}px, ${y * 60}px)`;
-            orbs[1].style.transform = `translate(${x * -60}px, ${y * -60}px)`;
+            const x = ((e.clientX / window.innerWidth)  - 0.5) * 24;
+            const y = ((e.clientY / window.innerHeight) - 0.5) * 24;
+            document.documentElement.style.setProperty('--parallax-x', `${x}px`);
+            document.documentElement.style.setProperty('--parallax-y', `${y}px`);
         });
 
-        // Render operations from data.js
         function getStatusBadge(status) {
             const map = {
-                success:    { cls: 'status-op-success',    label: '✓ Success' },
-                failure:    { cls: 'status-op-failure',    label: '✗ Failed' },
-                ongoing:    { cls: 'status-op-ongoing',    label: '● Ongoing' },
+                success: { cls: 'status-op-success', label: '✓ Success' },
+                failure: { cls: 'status-op-failure', label: '✗ Failed' },
+                ongoing: { cls: 'status-op-ongoing', label: '● Ongoing' },
                 classified: { cls: 'status-op-classified', label: '⬛ Classified' }
             };
             const s = map[status] || map.classified;
@@ -84,8 +80,6 @@
         }
 
         const feed = document.getElementById('opsFeed');
-
-        // Sort newest first
         const sorted = [...OPERATIONS].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         sorted.forEach((op, i) => {
@@ -93,8 +87,9 @@
             const participants = op.participants.map(p => `<span class="op-participant">${p}</span>`).join('');
 
             const card = document.createElement('article');
-            card.className = 'op-card';
-            card.style.animationDelay = `${i * 0.12}s`;
+            card.className = 'op-card glass-panel fade-in-up';
+            card.style.animationDelay = `${0.15 + (i * 0.1)}s`;
+            
             card.innerHTML = `
                 <div class="op-card-header">
                     <div class="op-card-meta">
@@ -105,13 +100,13 @@
                     ${getStatusBadge(op.status)}
                 </div>
 
-                <div class="op-card-title-row">
+                <div class="op-title-row">
                     <h2 class="op-title">${op.title}</h2>
                     <span class="op-type">${op.type}</span>
                 </div>
 
                 <div class="op-posted-by">
-                    <img src="logo.png" alt="" class="op-avatar">
+                    <img src="assets/logo.png" alt="" class="op-avatar" style="object-fit: cover;">
                     <div>
                         <span class="op-author">Posted by ${op.commanderCallsign}</span>
                         <span class="op-role">Commanding Officer</span>
@@ -127,7 +122,7 @@
 
                 <div class="op-footer">
                     <div class="op-participants-wrap">
-                        <span class="op-participants-label">Personnel:</span>
+                        <span class="op-participants-label">Personnel</span>
                         <div class="op-participants">${participants}</div>
                     </div>
                     <div class="op-tags">${tags}</div>
@@ -137,5 +132,4 @@
         });
     </script>
 </body>
-
 </html>

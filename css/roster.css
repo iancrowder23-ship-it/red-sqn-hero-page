@@ -1,0 +1,221 @@
+/* ============================================================
+   ROSTER PAGE
+   ============================================================ */
+
+.roster-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+/* ============================================================
+   GRID
+   ============================================================ */
+.roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2rem;
+}
+
+/* ============================================================
+   OPERATOR CARD
+   ============================================================ */
+.operator-card {
+    position: relative;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow: hidden;
+    /* Lift on hover — complements glass-panel box-shadow transition */
+    transition: transform var(--transition-smooth),
+                border-color var(--transition-smooth),
+                background   var(--transition-smooth),
+                box-shadow   var(--transition-smooth);
+}
+
+.operator-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Gradient accent bar that slides in from the left on hover */
+.operator-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--transition-smooth);
+}
+
+.operator-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* ============================================================
+   CARD HEADER (portrait + status)
+   ============================================================ */
+.op-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.op-portrait {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-hover);
+}
+
+.op-portrait-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-subtle);
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+.op-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-active {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.28);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.08);
+}
+
+.status-reserve {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+/* ============================================================
+   IDENTITY
+   ============================================================ */
+.op-name {
+    font-size: 2rem;
+    line-height: 1.1;
+    margin-bottom: 0.25rem;
+}
+
+.op-rank {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.op-role {
+    display: inline-block;
+    color: var(--accent-gold);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: rgba(217, 119, 6, 0.1);
+    padding: 0.2rem 0.8rem;
+    border-radius: var(--radius-sm);
+    margin-top: 0.5rem;
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.op-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.stat-val {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+/* ============================================================
+   BIO & CERTS
+   ============================================================ */
+.op-bio {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.65;
+}
+
+.op-certs-container {
+    margin-top: auto;
+}
+
+.op-certs-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.op-certs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.cert-tag {
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.3rem 0.65rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.cert-tag:hover {
+    background: rgba(255, 255, 255, 0.09);
+    color: var(--text-main);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .roster-grid {
+        grid-template-columns: 1fr;
+    }
+}

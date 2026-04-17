@@ -1,20 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RED SQN | JSOC</title>
     <meta name="description" content="Premier simulation community focusing on authentic experiences.">
-    <link rel="stylesheet" href="style.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
 </head>
-
 <body>
-    <!-- Fun Background Animation Elements -->
     <div class="background-orbs">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -22,90 +16,86 @@
 
     <nav class="navbar">
         <a href="index.html" class="logo">
-            <img src="logo.png" alt="Red Squadron Logo" class="nav-logo-img">
+            <img src="assets/logo.png" alt="Red Squadron Logo" class="nav-logo-img">
             <span class="nav-logo-text">Red Squadron</span>
         </a>
         <ul class="nav-links">
-            <li><a href="#home" class="active">Home</a></li>
-            <li><a href="#about">About</a></li>
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="about.html">About</a></li>
             <li><a href="roster.html">Roster</a></li>
             <li><a href="operations.html">Operations</a></li>
         </ul>
         <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
     </nav>
 
-    <header id="home" class="hero">
+    <header class="hero page-container">
         <div class="hero-content">
-            <div class="pill-badge">
-                <span class="pulse-dot"></span> Joint Special Operations Command
+            <div class="badge fade-in-up">
+                <span class="badge-dot"></span> Joint Special Operations Command
             </div>
-            <h1 class="reveal-text">RED <br><span class="gradient-text">SQUADRON</span></h1>
-            <p class="fade-up-text">Join the premier simulation community. Authentic tactics. Cohesive teamwork.
-                Unforgettable experiences.</p>
-            <div class="hero-actions">
-                <a href="about.html" class="btn-primary"><span>Get Started</span></a>
+            <h1 class="hero-title fade-in-up delay-1">
+                RED <br><span class="text-gradient-accent">SQUADRON</span>
+            </h1>
+            <p class="hero-subtitle fade-in-up delay-2">
+                Join the premier simulation community. Authentic tactics. Cohesive teamwork. Unforgettable experiences.
+            </p>
+            <div class="hero-actions fade-in-up delay-3">
+                <a href="about.html" class="btn-primary">Get Started</a>
                 <a id="discord-btn" href="#" target="_blank" class="btn-secondary">Join Discord</a>
-            </div>
-        </div>
-
-        <div class="scroll-indicator">
-            <span>Scroll</span>
-            <div class="scroll-mouse">
-                <div class="scroll-wheel"></div>
             </div>
         </div>
     </header>
 
-    <!-- ===== ABOUT SECTION ===== -->
-    <section id="about" class="about-section">
-        <div class="content-box">
-            <h2 class="reveal-text" style="font-size: clamp(2.2rem, 5vw, 3.5rem); margin-bottom: 1.5rem;">About <span class="gradient-text">Red Squadron</span></h2>
-            <p id="about-text" class="fade-up-text" style="text-align: left; max-width: 100%; font-size: 1.05rem;"></p>
+    <section class="page-container fade-in-up delay-4" style="padding-top: 0;">
+        <div class="bento-grid">
+            <div class="bento-item bento-large glass-panel">
+                <div>
+                    <h2 class="bento-title">The <span class="text-gradient-accent">Standard</span></h2>
+                    <p id="about-text" class="bento-text"></p>
+                </div>
+                <a href="about.html" class="bento-link">Read Full Manifesto &rarr;</a>
+            </div>
+            <div class="bento-item glass-panel">
+                <div>
+                    <h3 class="bento-title-small" id="bento-roster-title">Elite Roster</h3>
+                    <p class="bento-text" id="bento-roster-desc">Meet the operators executing high-stakes missions.</p>
+                </div>
+                <a href="roster.html" class="bento-link">View Roster &rarr;</a>
+            </div>
+            <div class="bento-item glass-panel">
+                <div>
+                    <h3 class="bento-title-small" id="bento-ops-title">Operations Log</h3>
+                    <p class="bento-text" id="bento-ops-desc">Declassified AARs from recent deployments.</p>
+                </div>
+                <a href="operations.html" class="bento-link">View Logs &rarr;</a>
+            </div>
         </div>
     </section>
 
-    <script src="data.js"></script>
+    <script src="js/data.js"></script>
     <script>
         // Wire discord links from data.js
         document.getElementById('discord-btn').href = DISCORD_LINK;
         document.getElementById('nav-enlist').href = DISCORD_LINK;
 
         // Populate about text from data.js
-        document.getElementById('about-text').innerHTML = SITE_INFO.about;
+        // Truncate it slightly for the home page bento box
+        const rawAbout = SITE_INFO.about.replace(/<br>/g, ' ');
+        document.getElementById('about-text').innerHTML = rawAbout.substring(0, 220) + '...';
 
-        // Orb parallax
+        // Populate Bento Boxes
+        document.getElementById('bento-roster-title').innerText = SITE_INFO.bentoBoxes.roster.title;
+        document.getElementById('bento-roster-desc').innerText = SITE_INFO.bentoBoxes.roster.description;
+        document.getElementById('bento-ops-title').innerText = SITE_INFO.bentoBoxes.operations.title;
+        document.getElementById('bento-ops-desc').innerText = SITE_INFO.bentoBoxes.operations.description;
+
+        // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
         document.addEventListener('mousemove', (e) => {
-            const orbs = document.querySelectorAll('.orb');
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
-            orbs[0].style.transform = `translate(${x * 60}px, ${y * 60}px)`;
-            orbs[1].style.transform = `translate(${x * -60}px, ${y * -60}px)`;
-        });
-
-        // Update active nav dot as sections scroll into view
-        const navSections = [
-            { id: 'home',  link: document.querySelector('.nav-links a[href="#home"]') },
-            { id: 'about', link: document.querySelector('.nav-links a[href="#about"]') },
-        ];
-
-        const allNavLinks = document.querySelectorAll('.nav-links a');
-
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const activeId = entry.target.id;
-                    allNavLinks.forEach(a => a.classList.remove('active'));
-                    const match = navSections.find(s => s.id === activeId);
-                    if (match && match.link) match.link.classList.add('active');
-                }
-            });
-        }, { threshold: 0.5 });
-
-        navSections.forEach(s => {
-            const el = document.getElementById(s.id);
-            if (el) sectionObserver.observe(el);
+            const x = ((e.clientX / window.innerWidth)  - 0.5) * 24;
+            const y = ((e.clientY / window.innerHeight) - 0.5) * 24;
+            document.documentElement.style.setProperty('--parallax-x', `${x}px`);
+            document.documentElement.style.setProperty('--parallax-y', `${y}px`);
         });
     </script>
 </body>
-
 </html>

@@ -1,0 +1,332 @@
+/* ============================================================
+   OPERATIONS PAGE
+   ============================================================ */
+
+.ops-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+/* ============================================================
+   FEED
+   ============================================================ */
+.ops-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ============================================================
+   OPERATION CARD
+   ============================================================ */
+.op-card {
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform      var(--transition-smooth),
+                border-color   var(--transition-smooth),
+                background     var(--transition-smooth),
+                box-shadow     var(--transition-smooth);
+}
+
+.op-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Accent bar — slides in from top on hover */
+.op-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent-red), var(--accent-gold));
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform var(--transition-smooth);
+}
+
+.op-card:hover::before {
+    transform: scaleY(1);
+}
+
+/* ============================================================
+   CARD HEADER
+   ============================================================ */
+.op-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.op-card-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.op-id {
+    font-family: var(--font-heading);
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+.op-status-badge {
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-op-success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.08);
+}
+
+.status-op-failure {
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-op-ongoing {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    animation: pulseBlue 2.4s infinite;
+}
+
+.status-op-classified {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-subtle);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@keyframes pulseBlue {
+    0%   { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0.45); }
+    60%  { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);    }
+    100% { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0);    }
+}
+
+/* ============================================================
+   TITLE ROW
+   ============================================================ */
+.op-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.op-title {
+    font-size: 2.2rem;
+    line-height: 1.1;
+}
+
+.op-type {
+    color: var(--accent-gold);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   POSTED BY
+   ============================================================ */
+.op-posted-by {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.op-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-hover);
+    flex-shrink: 0;
+}
+
+.op-author {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.op-role {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   SUMMARY
+   ============================================================ */
+.op-summary {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+/* ============================================================
+   DETAILS ACCORDION
+   Chevron rotates smoothly; no more `+` character trick.
+   ============================================================ */
+.op-details-block {
+    background: rgba(0, 0, 0, 0.18);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.op-details-toggle {
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    list-style: none; /* hide default <summary> triangle */
+    transition: background var(--transition-fast);
+}
+
+/* Hide the browser's default disclosure triangle */
+.op-details-toggle::-webkit-details-marker { display: none; }
+
+.op-details-toggle:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* SVG chevron injected via CSS — clean & scalable */
+.op-details-toggle::after {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 18px;
+    background-color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform var(--transition-smooth), background-color var(--transition-fast);
+    /* Chevron-down shape via mask */
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+details[open] .op-details-toggle::after {
+    transform: rotate(180deg);
+    background-color: var(--accent-red);
+}
+
+.op-details-body {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+    font-size: 0.95rem;
+}
+
+/* ============================================================
+   FOOTER (PARTICIPANTS + TAGS)
+   ============================================================ */
+.op-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.op-participants-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.op-participants-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-subtle);
+}
+
+.op-participants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.op-participant {
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.07);
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--radius-pill);
+    transition: background var(--transition-fast);
+}
+
+.op-participant:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.op-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.op-tag {
+    font-size: 0.75rem;
+    color: var(--accent-gold);
+    border: 1px solid rgba(217, 119, 6, 0.28);
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.op-tag:hover {
+    background: rgba(217, 119, 6, 0.1);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 600px) {
+    .op-title-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .op-card {
+        padding: 1.75rem;
+    }
+}

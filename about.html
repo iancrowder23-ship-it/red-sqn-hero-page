@@ -1,19 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About | Red Squadron</title>
-    <link rel="stylesheet" href="style.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@500;700&display=swap"
-        rel="stylesheet">
-    <link rel="icon" type="image/png" href="favicon.png">
-</head>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <style>
+        .about-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .manifesto-block {
+            padding: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
 
+        .manifesto-block::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .manifesto-content {
+            font-size: 1.25rem;
+            line-height: 1.9;
+            color: var(--text-muted);
+        }
+        
+        /* Drop cap for first paragraph */
+        .manifesto-content > p:first-of-type::first-letter {
+            float: left;
+            font-size: 4.5rem;
+            line-height: 0.8;
+            padding-right: 0.5rem;
+            font-family: var(--font-heading);
+            font-weight: 800;
+            color: var(--accent-red);
+        }
+
+        .manifesto-content > p {
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .stat-card {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 3rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            font-size: 0.9rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .manifesto-block { padding: 2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
 <body>
-    <!-- Fun Background Animation Elements -->
     <div class="background-orbs">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
@@ -21,44 +87,75 @@
 
     <nav class="navbar">
         <a href="index.html" class="logo">
-            <img src="logo.png" alt="Red Squadron Logo" class="nav-logo-img">
+            <img src="assets/logo.png" alt="Red Squadron Logo" class="nav-logo-img">
             <span class="nav-logo-text">Red Squadron</span>
         </a>
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="about.html" class="active">About</a></li>
             <li><a href="roster.html">Roster</a></li>
-            <li><a href="#operations">Operations</a></li>
+            <li><a href="operations.html">Operations</a></li>
         </ul>
-        <a href="#join" class="btn-nav">Enlist Now</a>
+        <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
     </nav>
 
-    <main class="page-content">
-        <div class="content-box">
-            <h1 class="reveal-text" style="font-size: 3.5rem;">About <span class="gradient-text">Red Squadron</span></h1>
-            <p class="fade-up-text" style="text-align: left; max-width: 100%;">
-                Welcome to Red Squadron, a branch of the Joint Special Operations Command. We are a premier military simulation community dedicated to authentic tactics and cohesive teamwork.
-                <br><br>
-                [This is a placeholder for your About Page. You can expand on your history, mission, requirements, and community rules here.]
-                <br><br>
-                Our members are held to a high standard of tactical realism, operating in diverse environments to complete complex objectives. Join us to experience unforgettable operations and form lasting bonds with your squadmates.
-            </p>
+    <main class="page-container">
+        <div class="about-wrapper">
+            <div class="ops-header fade-in-up">
+                <div class="badge" style="margin-bottom: 1.5rem;">
+                    <span class="badge-dot"></span> <span id="page-badge">The Manifesto</span>
+                </div>
+                <h1 class="hero-title" style="font-size: clamp(3rem, 6vw, 5rem); margin: 0 0 1rem;">
+                    <span id="page-title-normal">About</span> <span class="text-gradient-accent" id="page-title-highlight">Us</span>
+                </h1>
+            </div>
+
+            <div class="manifesto-block glass-panel fade-in-up delay-2">
+                <div class="manifesto-content" id="about-text">
+                    <!-- Loaded via data.js -->
+                </div>
+            </div>
+
+            <div class="stats-grid fade-in-up delay-3" id="stats-grid">
+                <!-- Loaded via data.js -->
+            </div>
         </div>
     </main>
 
-    <!-- Smooth Interactive Script -->
+    <script src="js/data.js"></script>
     <script>
-        // Subtle mouse tracking parallax for the background orbs
-        document.addEventListener('mousemove', (e) => {
-            const orbs = document.querySelectorAll('.orb');
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
+        document.getElementById('nav-enlist').href = DISCORD_LINK;
 
-            // Move orbs slightly opposite to the cursor
-            orbs[0].style.transform = `translate(${x * 60}px, ${y * 60}px)`;
-            orbs[1].style.transform = `translate(${x * -60}px, ${y * -60}px)`;
+        // Populate Header
+        document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.about.badge;
+        document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.about.titleNormal;
+        document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.about.titleHighlight;
+
+        // Parse the about text. It might have <br><br> tags. We'll wrap them in <p> tags for better styling.
+        const rawAbout = SITE_INFO.about;
+        const paragraphs = rawAbout.split('<br><br>').map(p => `<p>${p.trim()}</p>`).join('');
+        document.getElementById('about-text').innerHTML = paragraphs;
+
+        // Populate Stats
+        const statsGrid = document.getElementById('stats-grid');
+        let statsHtml = '';
+        SITE_INFO.stats.forEach(stat => {
+            statsHtml += `
+                <div class="stat-card glass-panel">
+                    <h3>${stat.value}</h3>
+                    <p>${stat.label}</p>
+                </div>
+            `;
+        });
+        statsGrid.innerHTML = statsHtml;
+
+        // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
+        document.addEventListener('mousemove', (e) => {
+            const x = ((e.clientX / window.innerWidth)  - 0.5) * 24;
+            const y = ((e.clientY / window.innerHeight) - 0.5) * 24;
+            document.documentElement.style.setProperty('--parallax-x', `${x}px`);
+            document.documentElement.style.setProperty('--parallax-y', `${y}px`);
         });
     </script>
 </body>
-
 </html>

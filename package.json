@@ -1,0 +1,12 @@
+{
+  "name": "red-squadron",
+  "version": "1.0.0",
+  "description": "Red Squadron JSOC milsim community site",
+  "scripts": {
+    "start": "npx serve@latest . --listen 8080 --no-clipboard",
+    "dev":   "npx serve@latest . --listen 3000 --no-clipboard"
+  },
+  "keywords": ["milsim", "jsoc", "static-site"],
+  "license": "UNLICENSED",
+  "private": true
+}

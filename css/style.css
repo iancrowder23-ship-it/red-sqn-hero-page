@@ -1,0 +1,495 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+    /* Colors */
+    --bg-base:           #030305;
+    --bg-surface:        rgba(20, 20, 24, 0.4);
+    --bg-surface-hover:  rgba(30, 30, 36, 0.6);
+    --text-main:         #f8fafc;
+    --text-muted:        #94a3b8;
+    --text-subtle:       #475569;
+    --accent-red:        #dc2626;
+    --accent-red-glow:   rgba(220, 38, 38, 0.3);
+    --accent-gold:       #d97706;
+    --accent-blue:       #1e40af;
+    --border-subtle:     rgba(255, 255, 255, 0.05);
+    --border-hover:      rgba(255, 255, 255, 0.12);
+
+    /* Radius */
+    --radius-sm:   8px;
+    --radius-md:   16px;
+    --radius-lg:   24px;
+    --radius-xl:   32px;
+    --radius-pill: 9999px;
+
+    /* Typography */
+    --font-heading: 'Outfit', sans-serif;
+    --font-body:    'Inter', sans-serif;
+
+    /* Easing */
+    --ease-out:    cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-expo:   cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Transitions */
+    --transition-fast:   0.2s var(--ease-out);
+    --transition-smooth: 0.4s var(--ease-expo);
+    --transition-spring: 0.6s var(--ease-spring);
+
+    /* Parallax (controlled by JS) */
+    --parallax-x: 0px;
+    --parallax-y: 0px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    overflow-x: hidden;
+    min-height: 100vh;
+    line-height: 1.6;
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(220, 38, 38, 0.03), transparent 50%),
+        radial-gradient(circle at 85% 30%, rgba(217, 119, 6, 0.03),  transparent 50%);
+    background-attachment: fixed;
+}
+
+/* ============================================================
+   BACKGROUND ORBS
+   Drift is applied to the orb itself. Parallax offset is
+   applied to a wrapper so the two transforms don't conflict.
+   ============================================================ */
+.background-orbs {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    /* Translate the entire orb layer with JS-controlled CSS vars */
+    transform: translate(var(--parallax-x), var(--parallax-y));
+    transition: transform 0.12s linear;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    will-change: transform;
+}
+
+.orb-1 {
+    top: -10%;
+    left: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: var(--accent-red);
+    animation: orbFloat 28s infinite alternate ease-in-out;
+}
+
+.orb-2 {
+    bottom: -10%;
+    right: -10%;
+    width: 50vw;
+    height: 50vw;
+    background: var(--accent-gold);
+    animation: orbFloat 22s 4s infinite alternate-reverse ease-in-out;
+}
+
+/* Organic multi-axis float — more interesting than a single translate */
+@keyframes orbFloat {
+    0%   { transform: translate(0,     0)    scale(1);    }
+    25%  { transform: translate(4%,    8%)   scale(1.05); }
+    50%  { transform: translate(10%,   3%)   scale(0.97); }
+    75%  { transform: translate(6%,    12%)  scale(1.08); }
+    100% { transform: translate(10%,   6%)   scale(1.03); }
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #f8fafc, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-accent {
+    background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.glass-panel {
+    background: var(--bg-surface);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: border-color var(--transition-smooth),
+                background   var(--transition-smooth),
+                box-shadow   var(--transition-smooth);
+}
+
+.glass-panel:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-surface-hover);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.page-container {
+    padding-top: 140px;
+    padding-bottom: 80px;
+    min-height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-inline: 2rem;
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1200px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10, 10, 14, 0.5);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    z-index: 100;
+    /* Start invisible + above viewport; spring into place */
+    opacity: 0;
+    animation: navSlideDown 0.9s var(--ease-expo) 0.1s forwards;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.nav-logo-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(220, 38, 38, 0.5);
+    box-shadow: 0 0 15px var(--accent-red-glow);
+    transition: transform var(--transition-spring),
+                border-color var(--transition-fast),
+                box-shadow   var(--transition-fast);
+}
+
+.logo:hover .nav-logo-img {
+    transform: rotate(15deg) scale(1.1);
+    border-color: var(--accent-red);
+    box-shadow: 0 0 28px var(--accent-red-glow);
+}
+
+.nav-logo-text {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--text-main);
+    letter-spacing: 0.5px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 0.5rem;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-pill);
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-nav {
+    padding: 0.7rem 1.6rem;
+    background: linear-gradient(135deg, var(--accent-red), #991b1b);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: var(--radius-pill);
+    box-shadow: 0 4px 15px var(--accent-red-glow);
+    transition: transform var(--transition-spring), box-shadow var(--transition-fast);
+}
+
+.btn-nav:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.55);
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem 2.8rem;
+    background: var(--text-main);
+    color: var(--bg-base);
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: var(--radius-pill);
+    transition: transform var(--transition-spring), box-shadow var(--transition-smooth);
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 12px 36px rgba(255, 255, 255, 0.22);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1rem 2.8rem;
+    background: transparent;
+    color: var(--text-main);
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    transition: background     var(--transition-fast),
+                border-color   var(--transition-fast),
+                transform      var(--transition-spring);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border-hover);
+    transform: translateY(-4px) scale(1.02);
+}
+
+/* ============================================================
+   BADGE
+   ============================================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.6rem 1.5rem;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--accent-red);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-red);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent-red);
+    animation: pulseDot 2.4s infinite;
+}
+
+/* ============================================================
+   ANIMATIONS & ENTRANCE CLASSES
+   ============================================================ */
+@keyframes navSlideDown {
+    from { transform: translateX(-50%) translateY(-130%); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0);     opacity: 1; }
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes pulseDot {
+    0%   { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0.7); }
+    60%  { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);   }
+    100% { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0);   }
+}
+
+.fade-in-up {
+    opacity: 0;
+    animation: fadeUp 0.75s var(--ease-expo) forwards;
+}
+
+/* Stagger delays — used on hero content and section intros */
+.delay-1 { animation-delay: 0.15s; }
+.delay-2 { animation-delay: 0.30s; }
+.delay-3 { animation-delay: 0.45s; }
+.delay-4 { animation-delay: 0.60s; }
+.delay-5 { animation-delay: 0.75s; }
+
+/* ============================================================
+   HERO (INDEX PAGE)
+   ============================================================ */
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 80vh;
+    padding-top: 180px;
+}
+
+.hero-title {
+    font-size: clamp(4rem, 10vw, 8rem);
+    line-height: 0.9;
+    margin: 2rem 0;
+    text-transform: uppercase;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 3rem;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* ============================================================
+   BENTO GRID (INDEX PAGE)
+   ============================================================ */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 300px);
+    gap: 1.5rem;
+    margin-top: 4rem;
+}
+
+.bento-item {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.bento-large {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+.bento-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.bento-title-small {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.bento-text {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+}
+
+/* Arrow link — uses padding-right instead of gap so the
+   transition is smooth (gap doesn't interpolate on all browsers). */
+.bento-link {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    color: var(--text-main);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color var(--transition-fast), letter-spacing var(--transition-fast);
+}
+
+.bento-link:hover {
+    color: var(--accent-red);
+    letter-spacing: 0.03em;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+    .bento-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .bento-large {
+        grid-column: span 1;
+        grid-row: auto;
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-links     { display: none; }
+    .hero-actions  { flex-direction: column; }
+    .btn-primary,
+    .btn-secondary { width: 100%; }
+}
