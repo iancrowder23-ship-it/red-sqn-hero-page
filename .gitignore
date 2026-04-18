@@ -25,3 +25,10 @@ npm-debug.log*
 __pycache__/
 *.pyc
 *.pyo
+
+# Database
+database.sqlite
+
+# User Uploads
+assets/roster/*
+!assets/roster/.keep

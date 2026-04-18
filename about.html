@@ -96,7 +96,10 @@
             <li><a href="roster.html">Roster</a></li>
             <li><a href="operations.html">Operations</a></li>
         </ul>
-        <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
+        <div class="nav-actions" style="display: flex; gap: 1rem;">
+            <a id="nav-auth" href="login.html" class="btn-secondary" style="padding: 0.5rem 1.5rem; text-decoration: none;">Login</a>
+            <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
+        </div>
     </nav>
 
     <main class="page-container">
@@ -122,32 +125,45 @@
         </div>
     </main>
 
-    <script src="js/data.js"></script>
     <script>
+        const DISCORD_LINK = "https://discord.gg/your-invite-link";
         document.getElementById('nav-enlist').href = DISCORD_LINK;
 
-        // Populate Header
-        document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.about.badge;
-        document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.about.titleNormal;
-        document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.about.titleHighlight;
+        // Check Auth state for Nav
+        fetch('/api/auth/me').then(res => res.json()).then(data => {
+            const authBtn = document.getElementById('nav-auth');
+            if (data.loggedIn) {
+                authBtn.innerText = 'Account';
+                authBtn.href = 'account.html';
+                authBtn.classList.remove('btn-secondary');
+                authBtn.classList.add('btn-primary');
+            }
+        }).catch(e => console.error('Auth Check Error', e));
 
-        // Parse the about text. It might have <br><br> tags. We'll wrap them in <p> tags for better styling.
-        const rawAbout = SITE_INFO.about;
-        const paragraphs = rawAbout.split('<br><br>').map(p => `<p>${p.trim()}</p>`).join('');
-        document.getElementById('about-text').innerHTML = paragraphs;
+        fetch('/api/data/site_info').then(res => res.json()).then(SITE_INFO => {
+            // Populate Header
+            document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.about.badge;
+            document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.about.titleNormal;
+            document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.about.titleHighlight;
 
-        // Populate Stats
-        const statsGrid = document.getElementById('stats-grid');
-        let statsHtml = '';
-        SITE_INFO.stats.forEach(stat => {
-            statsHtml += `
-                <div class="stat-card glass-panel">
-                    <h3>${stat.value}</h3>
-                    <p>${stat.label}</p>
-                </div>
-            `;
+            // Parse the about text. It might have <br><br> tags. We'll wrap them in <p> tags for better styling.
+            const rawAbout = SITE_INFO.about;
+            const paragraphs = rawAbout.split('<br><br>').map(p => `<p>${p.trim()}</p>`).join('');
+            document.getElementById('about-text').innerHTML = paragraphs;
+
+            // Populate Stats
+            const statsGrid = document.getElementById('stats-grid');
+            let statsHtml = '';
+            SITE_INFO.stats.forEach(stat => {
+                statsHtml += `
+                    <div class="stat-card glass-panel">
+                        <h3>${stat.value}</h3>
+                        <p>${stat.label}</p>
+                    </div>
+                `;
+            });
+            statsGrid.innerHTML = statsHtml;
         });
-        statsGrid.innerHTML = statsHtml;
 
         // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
         document.addEventListener('mousemove', (e) => {

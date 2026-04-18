@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | RED SQN</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: calc(100vh - 80px);
+            margin-top: 80px;
+        }
+        .admin-sidebar {
+            background: rgba(20, 20, 20, 0.9);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem 1rem;
+        }
+        .admin-nav-item {
+            display: block;
+            padding: 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .admin-nav-item:hover, .admin-nav-item.active {
+            background: rgba(255,68,68,0.1);
+            color: var(--accent);
+        }
+        .admin-content {
+            padding: 2rem;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .admin-table th, .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .admin-table th { color: var(--accent); }
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 0.3rem 0.6rem;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-right: 0.5rem;
+        }
+        .action-btn.delete { border-color: #ff4444; color: #ff4444; }
+        
+        /* Modals */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--bg); border: 1px solid var(--accent);
+            padding: 2rem; border-radius: 8px; width: 90%; max-width: 600px;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;
+        }
+        .modal-close { float: right; cursor: pointer; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <span class="nav-logo-text">Red Squadron</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="account.html">Back to Account</a></li>
+        </ul>
+    </nav>
+
+    <div id="unauthorized-msg" class="page-container fade-in-up" style="display:none; text-align:center; margin-top:100px;">
+        <h2 style="color: #ff4444;">RESTRICTED ACCESS</h2>
+        <p>You do not have the required clearance to view this sector.</p>
+    </div>
+
+    <div id="admin-panel" class="admin-layout" style="display:none;">
+        <div class="admin-sidebar">
+            <div class="admin-nav-item active" data-tab="dashboard">Dashboard</div>
+            <div class="admin-nav-item" data-tab="site-info">Site Info</div>
+            <div class="admin-nav-item" data-tab="roster">Roster</div>
+            <div class="admin-nav-item" data-tab="operations">Operations</div>
+            <div class="admin-nav-item" data-tab="users">Users</div>
+        </div>
+        
+        <div class="admin-content">
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-pane active">
+                <h2 class="hero-title" style="font-size: 2rem; margin-bottom: 1rem; color: #ff4444;">COMMAND <span class="text-gradient-accent">CENTER</span></h2>
+                <p>Welcome to the administrative interface. Select a module on the left to manage content.</p>
+                <div style="margin-top: 2rem; background: rgba(0,0,0,0.8); padding: 1rem; font-family: monospace; height: 200px; overflow-y: scroll;">
+                    [SYSTEM] Admin access granted.<br>
+                    [SYSTEM] Database connection established.<br>
+                    [SYSTEM] Awaiting commands...<br>
+                </div>
+            </div>
+
+            <!-- Site Info Tab -->
+            <div id="tab-site-info" class="tab-pane">
+                <h2>Site Info</h2>
+                <div class="glass-panel" style="margin-top: 1rem;">
+                    <p style="margin-bottom: 1rem;">Edit the core site information.</p>
+                    <textarea id="site-info-json" rows="15" style="width: 100%; background: #000; color: #0f0; padding: 1rem; font-family: monospace;"></textarea>
+                    <button class="btn-primary" style="margin-top: 1rem;" onclick="saveSiteInfo()">Save Changes</button>
+                </div>
+            </div>
+
+            <!-- Roster Tab -->
+            <div id="tab-roster" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Roster Management</h2>
+                    <button class="btn-primary" onclick="openModal('roster-modal', 'add')">Add Operator</button>
+                </div>
+                <div class="glass-panel" style="margin-top: 1rem; overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Callsign</th>
+                                <th>Rank</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roster-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Operations Tab -->
+            <div id="tab-operations" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Operations Log</h2>
+                    <button class="btn-primary" onclick="openModal('ops-modal', 'add')">Add Operation</button>
+                </div>
+                <div class="glass-panel" style="margin-top: 1rem; overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Theater</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ops-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" class="tab-pane">
+                <h2>User Management</h2>
+                <div class="glass-panel" style="margin-top: 1rem; overflow-x: auto;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>MFA</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Roster Modal -->
+    <div id="roster-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('roster-modal')">&times;</span>
+            <h3 id="roster-modal-title">Add Operator</h3>
+            <form id="roster-form" onsubmit="submitRoster(event)">
+                <input type="hidden" id="roster-id">
+                <div class="form-group"><label>Callsign</label><input type="text" id="r-callsign" required></div>
+                <div class="form-group"><label>Rank</label><input type="text" id="r-rank"></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="r-status">
+                        <option value="active">Active</option>
+                        <option value="reserve">Reserve</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Role</label><input type="text" id="r-role"></div>
+                <div class="form-group"><label>MOS</label><input type="text" id="r-mos"></div>
+                <div class="form-group"><label>Start Date</label><input type="date" id="r-startdate"></div>
+                <div class="form-group"><label>Specialization</label><input type="text" id="r-specialization"></div>
+                <div class="form-group"><label>Operations Count</label><input type="text" id="r-opscount"></div>
+                <div class="form-group"><label>Bio</label><textarea id="r-bio" rows="4"></textarea></div>
+                <div class="form-group"><label>Certifications (comma separated)</label><input type="text" id="r-certs"></div>
+                <div class="form-group"><label>Portrait Image</label><input type="file" id="r-portrait" accept="image/*"></div>
+                <button type="submit" class="btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ops Modal -->
+    <div id="ops-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('ops-modal')">&times;</span>
+            <h3 id="ops-modal-title">Add Operation</h3>
+            <form id="ops-form" onsubmit="submitOp(event)">
+                <input type="hidden" id="o-id">
+                <div class="form-group"><label>Title</label><input type="text" id="o-title" required></div>
+                <div class="form-group"><label>Date</label><input type="date" id="o-date"></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="o-status">
+                        <option value="success">Success</option>
+                        <option value="failure">Failure</option>
+                        <option value="ongoing">Ongoing</option>
+                        <option value="classified">Classified</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Theater</label><input type="text" id="o-theater"></div>
+                <div class="form-group"><label>Type</label><input type="text" id="o-type"></div>
+                <div class="form-group"><label>Commander Callsign</label><input type="text" id="o-commander"></div>
+                <div class="form-group"><label>Participants (comma separated)</label><input type="text" id="o-participants"></div>
+                <div class="form-group"><label>Summary</label><textarea id="o-summary" rows="3"></textarea></div>
+                <div class="form-group"><label>Details</label><textarea id="o-details" rows="5"></textarea></div>
+                <div class="form-group"><label>Tags (comma separated)</label><input type="text" id="o-tags"></div>
+                <button type="submit" class="btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check session and role
+        let currentMode = 'add';
+        let rosterData = [];
+        let opsData = [];
+
+        fetch('/api/auth/me').then(res => res.json()).then(data => {
+            if (!data.loggedIn || data.role !== 'admin') {
+                document.getElementById('unauthorized-msg').style.display = 'block';
+            } else {
+                document.getElementById('admin-panel').style.display = 'grid';
+                loadAllData();
+            }
+        });
+
+        // Tabs
+        document.querySelectorAll('.admin-nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(`tab-${e.target.dataset.tab}`).classList.add('active');
+            });
+        });
+
+        async function loadAllData() {
+            // Load Site Info
+            const siteRes = await fetch('/api/data/site_info');
+            const siteJson = await siteRes.json();
+            document.getElementById('site-info-json').value = JSON.stringify(siteJson, null, 4);
+
+            // Load Roster
+            const rRes = await fetch('/api/data/roster');
+            rosterData = await rRes.json();
+            renderRoster();
+
+            // Load Ops
+            const oRes = await fetch('/api/data/operations');
+            opsData = await oRes.json();
+            renderOps();
+
+            // Load Users
+            const uRes = await fetch('/api/auth/users'); // Note: we need to use the admin route, it's /api/data/users actually! Wait, I put it in api.js
+            const uResCorrect = await fetch('/api/data/users');
+            const usersData = await uResCorrect.json();
+            renderUsers(usersData);
+        }
+
+        // --- SITE INFO ---
+        async function saveSiteInfo() {
+            try {
+                const data = JSON.parse(document.getElementById('site-info-json').value);
+                await fetch('/api/data/site_info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert('Site Info saved!');
+            } catch (e) {
+                alert('Invalid JSON! Please check format.');
+            }
+        }
+
+        // --- ROSTER ---
+        function renderRoster() {
+            const tbody = document.getElementById('roster-tbody');
+            tbody.innerHTML = '';
+            rosterData.forEach(op => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${op.callsign}</td>
+                        <td>${op.rank}</td>
+                        <td>${op.role}</td>
+                        <td>${op.status}</td>
+                        <td>
+                            <button class="action-btn" onclick="editRoster(${op.id})">Edit</button>
+                            <button class="action-btn delete" onclick="deleteRoster(${op.id})">Del</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openModal(id, mode) {
+            currentMode = mode;
+            document.getElementById(id).style.display = 'flex';
+            if(mode === 'add') {
+                if(id === 'roster-modal') document.getElementById('roster-form').reset();
+                if(id === 'ops-modal') document.getElementById('ops-form').reset();
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function editRoster(id) {
+            const op = rosterData.find(r => r.id === id);
+            if(!op) return;
+            document.getElementById('r-callsign').value = op.callsign || '';
+            document.getElementById('r-rank').value = op.rank || '';
+            document.getElementById('r-status').value = op.status || 'active';
+            document.getElementById('r-role').value = op.role || '';
+            document.getElementById('r-mos').value = op.mos || '';
+            document.getElementById('r-startdate').value = op.startDate || '';
+            document.getElementById('r-specialization').value = op.specialization || '';
+            document.getElementById('r-opscount').value = op.operationsCount || '';
+            document.getElementById('r-bio').value = op.bio || '';
+            document.getElementById('r-certs').value = op.certifications ? op.certifications.join(', ') : '';
+            document.getElementById('roster-id').value = op.id;
+            document.getElementById('roster-modal-title').innerText = 'Edit Operator';
+            openModal('roster-modal', 'edit');
+        }
+
+        async function submitRoster(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('callsign', document.getElementById('r-callsign').value);
+            formData.append('rank', document.getElementById('r-rank').value);
+            formData.append('status', document.getElementById('r-status').value);
+            formData.append('role', document.getElementById('r-role').value);
+            formData.append('mos', document.getElementById('r-mos').value);
+            formData.append('startDate', document.getElementById('r-startdate').value);
+            formData.append('specialization', document.getElementById('r-specialization').value);
+            formData.append('operationsCount', document.getElementById('r-opscount').value);
+            formData.append('bio', document.getElementById('r-bio').value);
+            formData.append('certifications', document.getElementById('r-certs').value);
+            
+            const fileInput = document.getElementById('r-portrait');
+            if(fileInput.files[0]) {
+                formData.append('portrait', fileInput.files[0]);
+            }
+
+            const url = currentMode === 'add' ? '/api/data/roster' : `/api/data/roster/${document.getElementById('roster-id').value}`;
+            const method = currentMode === 'add' ? 'POST' : 'PUT';
+
+            await fetch(url, { method, body: formData });
+            closeModal('roster-modal');
+            loadAllData();
+        }
+
+        async function deleteRoster(id) {
+            if(!confirm('Are you sure?')) return;
+            await fetch(`/api/data/roster/${id}`, { method: 'DELETE' });
+            loadAllData();
+        }
+
+        // --- OPERATIONS ---
+        function renderOps() {
+            const tbody = document.getElementById('ops-tbody');
+            tbody.innerHTML = '';
+            opsData.forEach(op => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${op.title}</td>
+                        <td>${op.date}</td>
+                        <td>${op.status}</td>
+                        <td>${op.theater}</td>
+                        <td>
+                            <button class="action-btn" onclick="editOp(${op.id})">Edit</button>
+                            <button class="action-btn delete" onclick="deleteOp(${op.id})">Del</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editOp(id) {
+            const op = opsData.find(r => r.id === id);
+            if(!op) return;
+            document.getElementById('o-title').value = op.title || '';
+            document.getElementById('o-date').value = op.date || '';
+            document.getElementById('o-status').value = op.status || 'success';
+            document.getElementById('o-theater').value = op.theater || '';
+            document.getElementById('o-type').value = op.type || '';
+            document.getElementById('o-commander').value = op.commanderCallsign || '';
+            document.getElementById('o-participants').value = op.participants ? op.participants.join(', ') : '';
+            document.getElementById('o-summary').value = op.summary || '';
+            document.getElementById('o-details').value = op.details || '';
+            document.getElementById('o-tags').value = op.tags ? op.tags.join(', ') : '';
+            document.getElementById('o-id').value = op.id;
+            document.getElementById('ops-modal-title').innerText = 'Edit Operation';
+            openModal('ops-modal', 'edit');
+        }
+
+        async function submitOp(e) {
+            e.preventDefault();
+            const data = {
+                title: document.getElementById('o-title').value,
+                date: document.getElementById('o-date').value,
+                status: document.getElementById('o-status').value,
+                theater: document.getElementById('o-theater').value,
+                type: document.getElementById('o-type').value,
+                commanderCallsign: document.getElementById('o-commander').value,
+                participants: document.getElementById('o-participants').value,
+                summary: document.getElementById('o-summary').value,
+                details: document.getElementById('o-details').value,
+                tags: document.getElementById('o-tags').value
+            };
+
+            const url = currentMode === 'add' ? '/api/data/operations' : `/api/data/operations/${document.getElementById('o-id').value}`;
+            const method = currentMode === 'add' ? 'POST' : 'PUT';
+
+            await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            closeModal('ops-modal');
+            loadAllData();
+        }
+
+        async function deleteOp(id) {
+            if(!confirm('Are you sure?')) return;
+            await fetch(`/api/data/operations/${id}`, { method: 'DELETE' });
+            loadAllData();
+        }
+
+        // --- USERS ---
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-tbody');
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.username}</td>
+                        <td>
+                            <select onchange="changeRole(${u.id}, this.value)" style="background:#000;color:#fff;padding:0.2rem;">
+                                <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                        <td>${u.mfa_enabled ? 'Yes' : 'No'}</td>
+                        <td>
+                            <button class="action-btn delete" onclick="deleteUser(${u.id})">Del</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function changeRole(id, role) {
+            await fetch(`/api/data/users/${id}/role`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role })
+            });
+        }
+
+        async function deleteUser(id) {
+            if(!confirm('Delete this user permanently?')) return;
+            const res = await fetch(`/api/data/users/${id}`, { method: 'DELETE' });
+            if(!res.ok) {
+                const data = await res.json();
+                alert(data.error || 'Failed');
+            }
+            loadAllData();
+        }
+    </script>
+</body>
+</html>

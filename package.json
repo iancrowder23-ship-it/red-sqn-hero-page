@@ -3,10 +3,28 @@
   "version": "1.0.0",
   "description": "Red Squadron JSOC milsim community site",
   "scripts": {
-    "start": "npx serve@latest . --listen 8080 --no-clipboard",
-    "dev":   "npx serve@latest . --listen 3000 --no-clipboard"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": ["milsim", "jsoc", "static-site"],
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "csurf": "^1.2.2",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "multer": "^1.4.5-lts.1",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.3",
+    "sqlite3": "^6.0.1"
+  },
+  "keywords": [
+    "milsim",
+    "jsoc",
+    "static-site",
+    "express"
+  ],
   "license": "UNLICENSED",
   "private": true
 }

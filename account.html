@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings | RED SQN</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .account-container {
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 2rem;
+        }
+        .section-box {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        #qr-container { display: none; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <span class="nav-logo-text">Red Squadron</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="#" id="logout-btn">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-container">
+        <div class="account-container glass-panel fade-in-up">
+            <h2 class="hero-title" style="font-size: 2rem; margin-bottom: 1rem;">ACCOUNT <span class="text-gradient-accent">SETTINGS</span></h2>
+            
+            <div class="section-box">
+                <h3>Multi-Factor Authentication</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Enhance your account security by requiring a TOTP code on login.</p>
+                <button id="setup-mfa-btn" class="btn-primary">Enable MFA</button>
+                
+                <div id="qr-container">
+                    <img id="qr-image" src="" alt="MFA QR Code">
+                    <p style="color: var(--text-muted);">Scan this QR code with your authenticator app, then enter the token below to verify.</p>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <input type="text" id="mfa-verify-token" placeholder="6-digit code" style="padding: 0.5rem;">
+                        <button id="confirm-mfa-btn" class="btn-secondary">Confirm</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <h3>Admin Access</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1rem;">Access the administrative panel (requires admin role).</p>
+                <a href="admin.html" class="btn-secondary">Go to Admin Panel</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Check session
+        fetch('/api/auth/me').then(res => res.json()).then(data => {
+            if (!data.loggedIn) window.location.href = 'login.html';
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = 'index.html';
+        });
+
+        // Setup MFA
+        document.getElementById('setup-mfa-btn').addEventListener('click', async () => {
+            const res = await fetch('/api/auth/mfa/setup', { method: 'POST' });
+            const data = await res.json();
+            if (data.qrCode) {
+                document.getElementById('qr-image').src = data.qrCode;
+                document.getElementById('qr-container').style.display = 'block';
+                document.getElementById('setup-mfa-btn').style.display = 'none';
+            }
+        });
+
+        // Confirm MFA
+        document.getElementById('confirm-mfa-btn').addEventListener('click', async () => {
+            const token = document.getElementById('mfa-verify-token').value;
+            const res = await fetch('/api/auth/mfa/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            if (res.ok) {
+                alert('MFA Successfully Enabled!');
+                document.getElementById('qr-container').style.display = 'none';
+            } else {
+                alert('Invalid Token. Try again.');
+            }
+        });
+    </script>
+</body>
+</html>

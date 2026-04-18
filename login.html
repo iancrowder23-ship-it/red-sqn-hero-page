@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | RED SQN</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+        /* Honeypot field - visually hidden to catch bots */
+        .hp-field {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .error-msg {
+            color: #ff4444;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        #mfa-section { display: none; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <span class="nav-logo-text">Red Squadron</span>
+        </a>
+    </nav>
+
+    <div class="page-container">
+        <div class="auth-container glass-panel fade-in-up">
+            <h2 class="hero-title" style="font-size: 2rem; margin-bottom: 1rem;">SECURE <span class="text-gradient-accent">LOGIN</span></h2>
+            <div id="error-box" class="error-msg"></div>
+
+            <form id="login-form">
+                <!-- Honeypot for Bot Detection -->
+                <input type="text" name="honeypot" id="honeypot" class="hp-field" tabindex="-1" autocomplete="off">
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Authenticate</button>
+            </form>
+
+            <form id="mfa-section">
+                <p style="margin-bottom: 1rem; color: var(--text-muted);">Additional Verification Required.</p>
+                <div class="form-group">
+                    <label for="mfa-token">Authenticator Token</label>
+                    <input type="text" id="mfa-token" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Verify</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const mfaSection = document.getElementById('mfa-section');
+        const errorBox = document.getElementById('error-box');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const honeypot = document.getElementById('honeypot').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, honeypot })
+                });
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || 'Login failed');
+
+                if (data.adaptiveWarning) {
+                    alert('Security Notice: Login from a new device/IP detected.');
+                }
+
+                if (data.requireMfa) {
+                    loginForm.style.display = 'none';
+                    mfaSection.style.display = 'block';
+                } else {
+                    window.location.href = 'index.html';
+                }
+            } catch (err) {
+                errorBox.innerText = err.message;
+                errorBox.style.display = 'block';
+            }
+        });
+
+        mfaSection.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.style.display = 'none';
+            const token = document.getElementById('mfa-token').value;
+
+            try {
+                const res = await fetch('/api/auth/mfa/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Verification failed');
+
+                window.location.href = 'index.html';
+            } catch (err) {
+                errorBox.innerText = err.message;
+                errorBox.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

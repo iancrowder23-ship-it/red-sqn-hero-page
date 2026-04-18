@@ -26,7 +26,10 @@
             <li><a href="roster.html" class="active">Roster</a></li>
             <li><a href="operations.html">Operations</a></li>
         </ul>
-        <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
+        <div class="nav-actions" style="display: flex; gap: 1rem;">
+            <a id="nav-auth" href="login.html" class="btn-secondary" style="padding: 0.5rem 1.5rem; text-decoration: none;">Login</a>
+            <a id="nav-enlist" href="#" target="_blank" class="btn-nav">Enlist Now</a>
+        </div>
     </nav>
 
     <main class="page-container">
@@ -45,15 +48,28 @@
         </div>
     </main>
 
-    <script src="js/data.js"></script>
     <script>
+        const DISCORD_LINK = "https://discord.gg/your-invite-link";
         document.getElementById('nav-enlist').href = DISCORD_LINK;
 
-        // Populate Header
-        document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.roster.badge;
-        document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.roster.titleNormal;
-        document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.roster.titleHighlight;
-        document.getElementById('page-subtitle').innerText = SITE_INFO.pageHeaders.roster.subtitle;
+        // Check Auth state for Nav
+        fetch('/api/auth/me').then(res => res.json()).then(data => {
+            const authBtn = document.getElementById('nav-auth');
+            if (data.loggedIn) {
+                authBtn.innerText = 'Account';
+                authBtn.href = 'account.html';
+                authBtn.classList.remove('btn-secondary');
+                authBtn.classList.add('btn-primary');
+            }
+        }).catch(e => console.error('Auth Check Error', e));
+
+        fetch('/api/data/site_info').then(res => res.json()).then(SITE_INFO => {
+            // Populate Header
+            document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.roster.badge;
+            document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.roster.titleNormal;
+            document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.roster.titleHighlight;
+            document.getElementById('page-subtitle').innerText = SITE_INFO.pageHeaders.roster.subtitle;
+        });
 
         // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
         document.addEventListener('mousemove', (e) => {
@@ -78,61 +94,63 @@
         // Render Roster
         const grid = document.getElementById('roster-grid');
         
-        ROSTER.forEach((member, i) => {
-            const statusClass = member.status === 'active' ? 'status-active' : 'status-reserve';
-            const tis = calculateTIS(member.startDate);
-            
-            const certsHtml = member.certifications.map(cert => 
-                `<span class="cert-tag">${cert}</span>`
-            ).join('');
-
-            const portraitHtml = member.portrait 
-                ? `<img src="${member.portrait}" alt="${member.callsign}" class="op-portrait">`
-                : `<div class="op-portrait-placeholder">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                   </div>`;
-
-            const card = document.createElement('div');
-            card.className = 'operator-card glass-panel fade-in-up';
-            card.style.animationDelay = `${0.1 + (i * 0.05)}s`;
-            
-            card.innerHTML = `
-                <div class="op-header">
-                    ${portraitHtml}
-                    <span class="op-badge ${statusClass}">${member.status}</span>
-                </div>
+        fetch('/api/data/roster').then(res => res.json()).then(ROSTER => {
+            ROSTER.forEach((member, i) => {
+                const statusClass = member.status === 'active' ? 'status-active' : 'status-reserve';
+                const tis = calculateTIS(member.startDate);
                 
-                <div>
-                    <h2 class="op-name">${member.callsign}</h2>
-                    <div class="op-rank">${member.rank}</div>
-                    <div class="op-role">${member.role}</div>
-                </div>
+                const certsHtml = (member.certifications || []).map(cert => 
+                    `<span class="cert-tag">${cert}</span>`
+                ).join('');
 
-                <div class="op-stats">
-                    <div class="stat-box">
-                        <span class="stat-label">MOS</span>
-                        <span class="stat-val">${member.mos.split('—')[0].trim()}</span>
-                    </div>
-                    <div class="stat-box">
-                        <span class="stat-label">Time In Service</span>
-                        <span class="stat-val">${tis}</span>
-                    </div>
-                </div>
+                const portraitHtml = member.portrait 
+                    ? `<img src="${member.portrait}" alt="${member.callsign}" class="op-portrait">`
+                    : `<div class="op-portrait-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                       </div>`;
 
-                <p class="op-bio">${member.bio}</p>
-
-                <div class="op-certs-container">
-                    <div class="op-certs-label">Certifications</div>
-                    <div class="op-certs">
-                        ${certsHtml}
+                const card = document.createElement('div');
+                card.className = 'operator-card glass-panel fade-in-up';
+                card.style.animationDelay = `${0.1 + (i * 0.05)}s`;
+                
+                card.innerHTML = `
+                    <div class="op-header">
+                        ${portraitHtml}
+                        <span class="op-badge ${statusClass}">${member.status}</span>
                     </div>
-                </div>
-            `;
-            
-            grid.appendChild(card);
+                    
+                    <div>
+                        <h2 class="op-name">${member.callsign}</h2>
+                        <div class="op-rank">${member.rank}</div>
+                        <div class="op-role">${member.role}</div>
+                    </div>
+
+                    <div class="op-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">MOS</span>
+                            <span class="stat-val">${member.mos.split('—')[0].trim()}</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Time In Service</span>
+                            <span class="stat-val">${tis}</span>
+                        </div>
+                    </div>
+
+                    <p class="op-bio">${member.bio}</p>
+
+                    <div class="op-certs-container">
+                        <div class="op-certs-label">Certifications</div>
+                        <div class="op-certs">
+                            ${certsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
         });
     </script>
 </body>
