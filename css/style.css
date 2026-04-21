@@ -319,7 +319,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 600;
     font-size: 1.1rem;
-    border: 1px solid var(--border-subtle);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--radius-pill);
     transition: background     var(--transition-fast),
                 border-color   var(--transition-fast),
@@ -327,8 +327,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: var(--border-hover);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
     transform: translateY(-4px) scale(1.02);
 }
 
@@ -412,6 +412,7 @@ h1, h2, h3, h4, h5, h6 {
     text-align: center;
     min-height: 80vh;
     padding-top: 180px;
+    padding-bottom: 4rem;
 }
 
 .hero-title {
@@ -442,7 +443,7 @@ h1, h2, h3, h4, h5, h6 {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 300px);
     gap: 1.5rem;
-    margin-top: 4rem;
+    margin-top: 1.5rem;
 }
 
 .bento-item {

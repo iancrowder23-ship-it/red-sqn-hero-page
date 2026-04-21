@@ -11,23 +11,38 @@
             max-width: 900px;
             margin: 0 auto;
         }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
         
         .manifesto-block {
-            padding: 4rem;
+            padding: 3.5rem 4rem;
             position: relative;
             overflow: hidden;
+        }
+
+        .manifesto-block::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .manifesto-block::after {
             content: '';
             position: absolute;
-            top: 0; right: 0; width: 150px; height: 150px;
-            background: radial-gradient(circle, rgba(220, 38, 38, 0.1) 0%, transparent 70%);
+            bottom: 0; left: 0; width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.05) 0%, transparent 70%);
             border-radius: 50%;
+            pointer-events: none;
         }
 
         .manifesto-content {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             line-height: 1.9;
             color: var(--text-muted);
         }
@@ -35,41 +50,61 @@
         /* Drop cap for first paragraph */
         .manifesto-content > p:first-of-type::first-letter {
             float: left;
-            font-size: 4.5rem;
-            line-height: 0.8;
-            padding-right: 0.5rem;
+            font-size: 4rem;
+            line-height: 0.85;
+            padding-right: 0.45rem;
+            padding-bottom: 0.05rem;
             font-family: var(--font-heading);
             font-weight: 800;
             color: var(--accent-red);
+            text-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
         }
 
         .manifesto-content > p {
-            margin-bottom: 2rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .manifesto-content > p:last-child {
+            margin-bottom: 0;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            margin-top: 3rem;
+            margin-top: 2.5rem;
         }
 
         .stat-card {
             padding: 2rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(220, 38, 38, 0.05) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .stat-card h3 {
-            font-size: 3rem;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
+            font-size: 2.8rem;
+            font-family: var(--font-heading);
+            background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.4rem;
         }
 
         .stat-card p {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: var(--accent-gold);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             font-weight: 600;
         }
 
@@ -104,11 +139,11 @@
 
     <main class="page-container">
         <div class="about-wrapper">
-            <div class="ops-header fade-in-up">
-                <div class="badge" style="margin-bottom: 1.5rem;">
+            <div class="about-header fade-in-up">
+                <div class="badge" style="margin-bottom: 1.5rem; display: inline-flex;">
                     <span class="badge-dot"></span> <span id="page-badge">The Manifesto</span>
                 </div>
-                <h1 class="hero-title" style="font-size: clamp(3rem, 6vw, 5rem); margin: 0 0 1rem;">
+                <h1 class="hero-title" style="font-size: clamp(3rem, 6vw, 5rem); margin: 0 0 0.5rem;">
                     <span id="page-title-normal">About</span> <span class="text-gradient-accent" id="page-title-highlight">Us</span>
                 </h1>
             </div>

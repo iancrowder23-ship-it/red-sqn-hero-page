@@ -4,7 +4,116 @@
 
 .roster-header {
     text-align: center;
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
+}
+
+/* ============================================================
+   FILTER TABS
+   ============================================================ */
+.roster-filters {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 0.55rem 1.4rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color          var(--transition-fast),
+                background    var(--transition-fast),
+                border-color  var(--transition-fast),
+                box-shadow    var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-tab:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-hover);
+}
+
+.filter-tab.active {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.filter-tab.tab-active.active {
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.35);
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.08);
+}
+
+.filter-tab.tab-absent.active {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.08);
+}
+
+.tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.filter-tab.tab-active.active .tab-count {
+    background: rgba(34, 197, 94, 0.18);
+    color: #4ade80;
+}
+
+.filter-tab.tab-absent.active .tab-count {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+}
+
+/* Operator card hidden when filtered out */
+.operator-card.hidden-by-filter {
+    display: none;
+}
+
+/* Empty state */
+.roster-empty {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+    grid-column: 1 / -1;
+}
+
+.roster-empty.visible {
+    display: block;
+}
+
+.roster-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+}
+
+.roster-empty h3 {
+    font-size: 1.2rem;
+    color: var(--text-subtle);
+    font-weight: 500;
 }
 
 /* ============================================================
@@ -14,6 +123,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 2rem;
+    align-items: start;
 }
 
 /* ============================================================
@@ -21,11 +131,9 @@
    ============================================================ */
 .operator-card {
     position: relative;
-    padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-    overflow: hidden;
+    overflow: visible;   /* allow badge shadow to breathe */
     /* Lift on hover — complements glass-panel box-shadow transition */
     transition: transform var(--transition-smooth),
                 border-color var(--transition-smooth),
@@ -34,10 +142,10 @@
 }
 
 .operator-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
 }
 
-/* Gradient accent bar that slides in from the left on hover */
+/* Gradient accent bar that slides in from the top on hover */
 .operator-card::before {
     content: '';
     position: absolute;
@@ -45,10 +153,12 @@
     left: 0;
     right: 0;
     height: 3px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
     transform: scaleX(0);
     transform-origin: left;
     transition: transform var(--transition-smooth);
+    z-index: 3;
 }
 
 .operator-card:hover::before {
@@ -60,12 +170,11 @@
    ============================================================ */
 .op-header {
     position: relative;
-    margin: -2rem -2rem 0;       /* bleed to card edges */
-    height: 200px;
-    overflow: hidden;
+    height: 210px;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     background: rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
+    overflow: hidden;   /* clips the portrait image only */
 }
 
 .op-portrait {
@@ -88,26 +197,27 @@
     inset: 0;
     background: linear-gradient(
         to bottom,
-        transparent 30%,
-        rgba(3, 3, 5, 0.85) 100%
+        transparent 35%,
+        rgba(3, 3, 5, 0.9) 100%
     );
     pointer-events: none;
 }
 
-/* Status badge — anchored bottom-right inside the banner */
+/* Status badge — anchored bottom-right, z-index above the gradient overlay */
 .op-badge {
     position: absolute;
-    bottom: 0.75rem;
-    right: 0.75rem;
-    z-index: 2;
-    padding: 0.3rem 0.8rem;
+    bottom: 0.85rem;
+    right: 0.85rem;
+    z-index: 10;
+    padding: 0.28rem 0.75rem;
     border-radius: var(--radius-pill);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    letter-spacing: 1.2px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    white-space: nowrap;
 }
 
 /* Placeholder when no portrait image is set */
@@ -121,52 +231,70 @@
     gap: 0.5rem;
     background: linear-gradient(
         135deg,
-        rgba(220, 38, 38, 0.08) 0%,
-        rgba(0, 0, 0, 0.4) 100%
+        rgba(220, 38, 38, 0.1) 0%,
+        rgba(10, 10, 14, 0.6) 100%
     );
     color: var(--text-subtle);
 }
 
 .op-portrait-placeholder .placeholder-initial {
     font-family: var(--font-heading);
-    font-size: 4rem;
+    font-size: 4.5rem;
     font-weight: 800;
-    color: rgba(220, 38, 38, 0.3);
+    color: rgba(220, 38, 38, 0.25);
     line-height: 1;
     letter-spacing: -0.02em;
 }
 
 .op-portrait-placeholder .placeholder-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     color: var(--text-subtle);
 }
 
 .status-active {
-    background: rgba(34, 197, 94, 0.12);
+    background: rgba(34, 197, 94, 0.15);
     color: #4ade80;
-    border: 1px solid rgba(34, 197, 94, 0.28);
-    box-shadow: 0 0 10px rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.12);
 }
 
 .status-reserve {
-    background: rgba(245, 158, 11, 0.12);
+    background: rgba(245, 158, 11, 0.15);
     color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.28);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.08);
+}
+
+/* ============================================================
+   CARD BODY
+   ============================================================ */
+.op-body {
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    flex: 1;
 }
 
 /* ============================================================
    IDENTITY
    ============================================================ */
+.op-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
 .op-name {
-    font-size: 2rem;
+    font-size: 1.75rem;
     line-height: 1.1;
-    margin-bottom: 0.25rem;
+    margin: 0;
 }
 
 .op-rank {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
     font-weight: 500;
 }
@@ -176,11 +304,11 @@
     color: var(--accent-gold);
     font-family: var(--font-heading);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     background: rgba(217, 119, 6, 0.1);
-    padding: 0.2rem 0.8rem;
+    border: 1px solid rgba(217, 119, 6, 0.2);
+    padding: 0.2rem 0.75rem;
     border-radius: var(--radius-sm);
-    margin-top: 0.5rem;
 }
 
 /* ============================================================
@@ -189,11 +317,11 @@
 .op-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
     background: rgba(0, 0, 0, 0.2);
-    padding: 1.25rem;
+    padding: 1rem 1.1rem;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .stat-box {
@@ -203,15 +331,15 @@
 }
 
 .stat-label {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: var(--text-subtle);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 
 .stat-val {
-    font-weight: 500;
-    font-size: 0.95rem;
+    font-weight: 600;
+    font-size: 0.9rem;
     color: var(--text-main);
 }
 
@@ -219,42 +347,46 @@
    BIO & CERTS
    ============================================================ */
 .op-bio {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text-muted);
-    line-height: 1.65;
+    line-height: 1.7;
+    margin: 0;
 }
 
 .op-certs-container {
     margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
 }
 
 .op-certs-label {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     text-transform: uppercase;
     color: var(--text-subtle);
     letter-spacing: 1px;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
 }
 
 .op-certs {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .cert-tag {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     background: rgba(255, 255, 255, 0.05);
-    padding: 0.3rem 0.65rem;
+    padding: 0.25rem 0.6rem;
     border-radius: var(--radius-sm);
     color: var(--text-muted);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: background var(--transition-fast), color var(--transition-fast);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .cert-tag:hover {
-    background: rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ============================================================
@@ -263,5 +395,10 @@
 @media (max-width: 768px) {
     .roster-grid {
         grid-template-columns: 1fr;
+    }
+
+    .filter-tab {
+        padding: 0.5rem 1.1rem;
+        font-size: 0.82rem;
     }
 }
