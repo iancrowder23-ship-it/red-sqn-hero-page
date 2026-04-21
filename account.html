@@ -4,19 +4,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Settings | RED SQN</title>
+    <meta name="description" content="Manage your Red Squadron account settings, MFA, and security.">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .account-container {
-            max-width: 600px;
-            margin: 100px auto;
-            padding: 2rem;
+        .account-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 120px 1.5rem 4rem;
+            min-height: 100vh;
         }
-        .section-box {
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+
+        .account-card {
+            width: 100%;
+            max-width: 620px;
         }
-        #qr-container { display: none; margin-top: 1rem; }
+
+        .account-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .account-user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .account-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-red), #7f1d1d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #fff;
+            flex-shrink: 0;
+            border: 2px solid rgba(220, 38, 38, 0.4);
+        }
+
+        .account-username {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .section-card {
+            background: var(--bg-surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+            transition: border-color var(--transition-smooth);
+        }
+
+        .section-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        .section-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            gap: 1rem;
+        }
+
+        .section-card h3 {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-main);
+        }
+
+        .section-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .mfa-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .mfa-status.enabled {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .mfa-status.disabled {
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: var(--text-muted);
+        }
+
+        .mfa-status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        #qr-container {
+            display: none;
+            margin-top: 1.25rem;
+            padding: 1.25rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+        }
+
+        #qr-image {
+            display: block;
+            margin: 0 auto 1rem;
+            border-radius: var(--radius-sm);
+            max-width: 200px;
+        }
+
+        .mfa-verify-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .mfa-verify-row input {
+            flex: 1;
+        }
+
+        #admin-section { display: none; }
     </style>
 </head>
 <body>
@@ -26,76 +156,213 @@
         </a>
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
-            <li><a href="#" id="logout-btn">Logout</a></li>
+            <li><a href="roster.html">Roster</a></li>
+            <li><a href="operations.html">Operations</a></li>
         </ul>
+        <a href="#" id="logout-btn" class="btn-nav">Logout</a>
     </nav>
 
-    <div class="page-container">
-        <div class="account-container glass-panel fade-in-up">
-            <h2 class="hero-title" style="font-size: 2rem; margin-bottom: 1rem;">ACCOUNT <span class="text-gradient-accent">SETTINGS</span></h2>
-            
-            <div class="section-box">
-                <h3>Multi-Factor Authentication</h3>
-                <p style="color: var(--text-muted); margin-bottom: 1rem;">Enhance your account security by requiring a TOTP code on login.</p>
-                <button id="setup-mfa-btn" class="btn-primary">Enable MFA</button>
-                
-                <div id="qr-container">
-                    <img id="qr-image" src="" alt="MFA QR Code">
-                    <p style="color: var(--text-muted);">Scan this QR code with your authenticator app, then enter the token below to verify.</p>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <input type="text" id="mfa-verify-token" placeholder="6-digit code" style="padding: 0.5rem;">
-                        <button id="confirm-mfa-btn" class="btn-secondary">Confirm</button>
+    <div class="account-wrapper">
+        <div class="account-card fade-in-up">
+
+            <div class="account-header">
+                <h1 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; letter-spacing: -0.02em;">
+                    ACCOUNT <span class="text-gradient-accent">SETTINGS</span>
+                </h1>
+                <div class="account-user-info">
+                    <div class="account-avatar" id="user-avatar">?</div>
+                    <div>
+                        <div class="account-username" id="user-display-name">Loading...</div>
+                        <span class="role-badge" id="user-role-badge"></span>
                     </div>
                 </div>
             </div>
 
-            <div class="section-box">
+            <!-- MFA Section -->
+            <div class="section-card">
+                <div class="section-card-header">
+                    <h3>Multi-Factor Authentication</h3>
+                    <span class="mfa-status disabled" id="mfa-status-badge">
+                        <span class="dot"></span> Disabled
+                    </span>
+                </div>
+                <p>Enhance your account security by requiring a TOTP code on each login.</p>
+
+                <div id="feedback-mfa" class="feedback-msg error"></div>
+
+                <button id="setup-mfa-btn" class="btn-primary" style="display:none;">Enable MFA</button>
+                <button id="disable-mfa-btn" class="btn-danger" style="display:none;">Disable MFA</button>
+
+                <div id="qr-container">
+                    <p style="text-align: center; font-size: 0.85rem; margin-bottom: 0.75rem;">Scan with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                    <img id="qr-image" src="" alt="MFA QR Code">
+                    <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">Then enter the 6-digit code below to confirm.</p>
+                    <div class="mfa-verify-row form-group">
+                        <input type="text" id="mfa-verify-token" placeholder="000000" maxlength="6" inputmode="numeric">
+                        <button id="confirm-mfa-btn" class="btn-primary">Confirm</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Change Section -->
+            <div class="section-card">
+                <h3>Change Password</h3>
+                <p>Update your login password. You'll need to provide your current password.</p>
+                <div id="feedback-pw" class="feedback-msg"></div>
+                <form id="pw-form">
+                    <div class="form-group">
+                        <label for="current-pw">Current Password</label>
+                        <input type="password" id="current-pw" required autocomplete="current-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-pw">New Password</label>
+                        <input type="password" id="new-pw" required minlength="8" autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-pw">Confirm New Password</label>
+                        <input type="password" id="confirm-pw" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-primary" id="pw-submit-btn">Update Password</button>
+                </form>
+            </div>
+
+            <!-- Admin Access Section (admin only) -->
+            <div class="section-card" id="admin-section">
                 <h3>Admin Access</h3>
-                <p style="color: var(--text-muted); margin-bottom: 1rem;">Access the administrative panel (requires admin role).</p>
-                <a href="admin.html" class="btn-secondary">Go to Admin Panel</a>
+                <p>Access the administrative control panel to manage roster, operations, users, and site settings.</p>
+                <a href="admin.html" class="btn-primary" style="text-decoration: none;">Open Admin Panel →</a>
             </div>
 
         </div>
     </div>
 
     <script>
-        // Check session
-        fetch('/api/auth/me').then(res => res.json()).then(data => {
-            if (!data.loggedIn) window.location.href = 'login.html';
-        });
+        let currentUser = null;
+
+        // Session check
+        fetch('/api/auth/me').then(r => r.json()).then(data => {
+            if (!data.loggedIn) { window.location.href = 'login.html'; return; }
+            currentUser = data;
+
+            // Populate user info
+            const initial = (data.username || '?')[0].toUpperCase();
+            document.getElementById('user-avatar').textContent = initial;
+            document.getElementById('user-display-name').textContent = data.username;
+
+            const badge = document.getElementById('user-role-badge');
+            badge.textContent = data.role === 'admin' ? 'Admin' : 'Member';
+            badge.classList.add(data.role === 'admin' ? 'admin' : 'user');
+
+            // MFA status
+            const mfaBadge = document.getElementById('mfa-status-badge');
+            if (data.mfa_enabled) {
+                mfaBadge.className = 'mfa-status enabled';
+                mfaBadge.innerHTML = '<span class="dot"></span> Enabled';
+                document.getElementById('disable-mfa-btn').style.display = 'inline-flex';
+            } else {
+                document.getElementById('setup-mfa-btn').style.display = 'inline-flex';
+            }
+
+            // Show admin section only for admins
+            if (data.role === 'admin') {
+                document.getElementById('admin-section').style.display = 'block';
+            }
+        }).catch(() => { window.location.href = 'login.html'; });
 
         // Logout
-        document.getElementById('logout-btn').addEventListener('click', async () => {
+        document.getElementById('logout-btn').addEventListener('click', async e => {
+            e.preventDefault();
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.href = 'index.html';
         });
 
-        // Setup MFA
+        // MFA Setup
         document.getElementById('setup-mfa-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('setup-mfa-btn');
+            btn.classList.add('loading');
             const res = await fetch('/api/auth/mfa/setup', { method: 'POST' });
             const data = await res.json();
+            btn.classList.remove('loading');
             if (data.qrCode) {
                 document.getElementById('qr-image').src = data.qrCode;
                 document.getElementById('qr-container').style.display = 'block';
-                document.getElementById('setup-mfa-btn').style.display = 'none';
+                btn.style.display = 'none';
             }
         });
 
-        // Confirm MFA
+        // MFA Confirm
         document.getElementById('confirm-mfa-btn').addEventListener('click', async () => {
-            const token = document.getElementById('mfa-verify-token').value;
+            const token = document.getElementById('mfa-verify-token').value.trim();
+            const msgEl = document.getElementById('feedback-mfa');
+            if (!token) return;
+            const btn = document.getElementById('confirm-mfa-btn');
+            btn.classList.add('loading');
             const res = await fetch('/api/auth/mfa/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
             });
+            btn.classList.remove('loading');
             if (res.ok) {
-                alert('MFA Successfully Enabled!');
                 document.getElementById('qr-container').style.display = 'none';
+                document.getElementById('mfa-status-badge').className = 'mfa-status enabled';
+                document.getElementById('mfa-status-badge').innerHTML = '<span class="dot"></span> Enabled';
+                document.getElementById('disable-mfa-btn').style.display = 'inline-flex';
+                showFeedback(msgEl, 'MFA successfully enabled!', 'success');
             } else {
-                alert('Invalid Token. Try again.');
+                showFeedback(msgEl, 'Invalid token. Please try again.', 'error');
             }
         });
+
+        // MFA Disable
+        document.getElementById('disable-mfa-btn').addEventListener('click', async () => {
+            if (!confirm('Disable Multi-Factor Authentication? This reduces your account security.')) return;
+            const btn = document.getElementById('disable-mfa-btn');
+            btn.classList.add('loading');
+            const res = await fetch('/api/auth/mfa/disable', { method: 'POST' });
+            btn.classList.remove('loading');
+            const msgEl = document.getElementById('feedback-mfa');
+            if (res.ok) {
+                document.getElementById('mfa-status-badge').className = 'mfa-status disabled';
+                document.getElementById('mfa-status-badge').innerHTML = '<span class="dot"></span> Disabled';
+                btn.style.display = 'none';
+                document.getElementById('setup-mfa-btn').style.display = 'inline-flex';
+                showFeedback(msgEl, 'MFA has been disabled.', 'success');
+            } else {
+                showFeedback(msgEl, 'Failed to disable MFA.', 'error');
+            }
+        });
+
+        // Password Change
+        document.getElementById('pw-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const msgEl = document.getElementById('feedback-pw');
+            const newPw = document.getElementById('new-pw').value;
+            const confirmPw = document.getElementById('confirm-pw').value;
+            if (newPw !== confirmPw) { showFeedback(msgEl, 'New passwords do not match.', 'error'); return; }
+            if (newPw.length < 8) { showFeedback(msgEl, 'Password must be at least 8 characters.', 'error'); return; }
+            const btn = document.getElementById('pw-submit-btn');
+            btn.classList.add('loading');
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword: document.getElementById('current-pw').value, newPassword: newPw })
+            });
+            btn.classList.remove('loading');
+            if (res.ok) {
+                showFeedback(msgEl, 'Password updated successfully.', 'success');
+                document.getElementById('pw-form').reset();
+            } else {
+                const data = await res.json();
+                showFeedback(msgEl, data.error || 'Failed to update password.', 'error');
+            }
+        });
+
+        function showFeedback(el, msg, type) {
+            el.className = `feedback-msg ${type} show`;
+            el.textContent = (type === 'error' ? '⚠ ' : '✓ ') + msg;
+            setTimeout(() => { el.className = `feedback-msg ${type}`; }, 5000);
+        }
     </script>
 </body>
 </html>

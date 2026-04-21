@@ -56,45 +56,91 @@
 }
 
 /* ============================================================
-   CARD HEADER (portrait + status)
+   CARD HEADER — full-width portrait banner
    ============================================================ */
 .op-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.op-portrait {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-hover);
-}
-
-.op-portrait-placeholder {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border-hover);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-subtle);
+    position: relative;
+    margin: -2rem -2rem 0;       /* bleed to card edges */
+    height: 200px;
+    overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: rgba(0, 0, 0, 0.4);
     flex-shrink: 0;
 }
 
-/* ============================================================
-   STATUS BADGES
-   ============================================================ */
+.op-portrait {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transition: transform var(--transition-smooth);
+}
+
+.operator-card:hover .op-portrait {
+    transform: scale(1.04);
+}
+
+/* Dark gradient so text can sit over portrait */
+.op-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        transparent 30%,
+        rgba(3, 3, 5, 0.85) 100%
+    );
+    pointer-events: none;
+}
+
+/* Status badge — anchored bottom-right inside the banner */
 .op-badge {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
     padding: 0.3rem 0.8rem;
     border-radius: var(--radius-pill);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Placeholder when no portrait image is set */
+.op-portrait-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(
+        135deg,
+        rgba(220, 38, 38, 0.08) 0%,
+        rgba(0, 0, 0, 0.4) 100%
+    );
+    color: var(--text-subtle);
+}
+
+.op-portrait-placeholder .placeholder-initial {
+    font-family: var(--font-heading);
+    font-size: 4rem;
+    font-weight: 800;
+    color: rgba(220, 38, 38, 0.3);
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.op-portrait-placeholder .placeholder-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-subtle);
 }
 
 .status-active {

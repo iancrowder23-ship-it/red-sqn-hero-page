@@ -18,6 +18,10 @@
     --border-subtle:     rgba(255, 255, 255, 0.05);
     --border-hover:      rgba(255, 255, 255, 0.12);
 
+    /* Aliases — keep legacy shorthand names working */
+    --accent:  var(--accent-red);
+    --bg:      var(--bg-base);
+
     /* Radius */
     --radius-sm:   8px;
     --radius-md:   16px;
@@ -135,19 +139,23 @@ h1, h2, h3, h4, h5, h6 {
 .text-gradient {
     background: linear-gradient(135deg, #f8fafc, #94a3b8);
     -webkit-background-clip: text;
-    background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     color: transparent;
     display: inline-block;
+    line-height: 1.1;
+    padding-bottom: 0.05em;
 }
 
 .text-gradient-accent {
     background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
     -webkit-background-clip: text;
-    background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     color: transparent;
     display: inline-block;
+    line-height: 1.1;
+    padding-bottom: 0.05em;
 }
 
 /* ============================================================
@@ -365,10 +373,20 @@ h1, h2, h3, h4, h5, h6 {
     to   { opacity: 1; transform: translateY(0);    }
 }
 
+/* Alias — admin panel tab animation uses this name */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0);    }
+}
+
 @keyframes pulseDot {
     0%   { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0.7); }
     60%  { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);   }
     100% { box-shadow: 0 0 0 0   rgba(220, 38, 38, 0);   }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .fade-in-up {
@@ -474,6 +492,172 @@ h1, h2, h3, h4, h5, h6 {
 .bento-link:hover {
     color: var(--accent-red);
     letter-spacing: 0.03em;
+}
+
+/* ============================================================
+   SHARED FORM STYLES
+   Used by login, account, and admin modals.
+   ============================================================ */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color var(--transition-fast),
+                box-shadow   var(--transition-fast),
+                background   var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--accent-red);
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 0 3px var(--accent-red-glow);
+}
+
+.form-group input[type="file"] {
+    padding: 0.6rem;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.4);
+    cursor: pointer;
+}
+
+.form-group select option {
+    background: #1a1a1f;
+    color: var(--text-main);
+}
+
+/* ============================================================
+   SHARED UTILITY CLASSES
+   ============================================================ */
+.btn-full {
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background var(--transition-fast),
+                border-color var(--transition-fast),
+                transform    var(--transition-spring);
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    transform: translateY(-2px);
+}
+
+/* Error / success feedback */
+.feedback-msg {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    animation: fadeInUp 0.3s var(--ease-expo) forwards;
+}
+
+.feedback-msg.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #f87171;
+}
+
+.feedback-msg.success {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+}
+
+.feedback-msg.show {
+    display: flex;
+}
+
+/* Role badge */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-badge.admin {
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: var(--accent-red);
+}
+
+.role-badge.user {
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: var(--text-muted);
+}
+
+/* Button loading spinner */
+.btn-primary.loading,
+.btn-secondary.loading {
+    pointer-events: none;
+    opacity: 0.7;
+    position: relative;
+}
+
+.btn-primary.loading::after,
+.btn-secondary.loading::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-left: 8px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 /* ============================================================

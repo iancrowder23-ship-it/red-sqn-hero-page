@@ -146,6 +146,34 @@ router.post('/mfa/confirm', (req, res) => {
     });
 });
 
+// Disable MFA
+router.post('/mfa/disable', (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
+    db.run("UPDATE users SET mfa_enabled = 0, mfa_secret = NULL WHERE id = ?", [req.session.userId], (err) => {
+        if (err) return res.status(500).json({ error: 'Failed to disable MFA.' });
+        res.json({ success: true });
+    });
+});
+
+// Change Password
+router.post('/change-password', (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Missing required fields.' });
+    if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+
+    db.get("SELECT * FROM users WHERE id = ?", [req.session.userId], async (err, user) => {
+        if (err || !user) return res.status(404).json({ error: 'User not found.' });
+        const match = await bcrypt.compare(currentPassword, user.password);
+        if (!match) return res.status(401).json({ error: 'Current password is incorrect.' });
+        const hash = await bcrypt.hash(newPassword, 10);
+        db.run("UPDATE users SET password = ? WHERE id = ?", [hash, user.id], (err) => {
+            if (err) return res.status(500).json({ error: 'Failed to update password.' });
+            res.json({ success: true });
+        });
+    });
+});
+
 // Logout
 router.post('/logout', (req, res) => {
     req.session.destroy(err => {
@@ -158,7 +186,14 @@ router.post('/logout', (req, res) => {
 // Check Session state
 router.get('/me', (req, res) => {
     if (req.session.userId) {
-        res.json({ loggedIn: true, username: req.session.username, role: req.session.role });
+        db.get("SELECT mfa_enabled FROM users WHERE id = ?", [req.session.userId], (err, row) => {
+            res.json({
+                loggedIn: true,
+                username: req.session.username,
+                role: req.session.role,
+                mfa_enabled: row ? !!row.mfa_enabled : false
+            });
+        });
     } else {
         res.json({ loggedIn: false });
     }

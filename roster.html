@@ -106,42 +106,43 @@
                 const portraitHtml = member.portrait 
                     ? `<img src="${member.portrait}" alt="${member.callsign}" class="op-portrait">`
                     : `<div class="op-portrait-placeholder">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
+                        <div class="placeholder-initial">${member.callsign[0].toUpperCase()}</div>
+                        <div class="placeholder-label">No Portrait</div>
                        </div>`;
 
                 const card = document.createElement('div');
                 card.className = 'operator-card glass-panel fade-in-up';
                 card.style.animationDelay = `${0.1 + (i * 0.05)}s`;
+                card.style.padding = '0';
                 
                 card.innerHTML = `
                     <div class="op-header">
                         ${portraitHtml}
                         <span class="op-badge ${statusClass}">${member.status}</span>
                     </div>
-                    
-                    <div>
+
+                    <div style="padding: 1.5rem 2rem 0;">
                         <h2 class="op-name">${member.callsign}</h2>
-                        <div class="op-rank">${member.rank}</div>
-                        <div class="op-role">${member.role}</div>
+                        <div class="op-rank">${member.rank || '—'}</div>
+                        <div class="op-role">${member.role || '—'}</div>
                     </div>
 
-                    <div class="op-stats">
-                        <div class="stat-box">
-                            <span class="stat-label">MOS</span>
-                            <span class="stat-val">${member.mos.split('—')[0].trim()}</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Time In Service</span>
-                            <span class="stat-val">${tis}</span>
+                    <div style="padding: 0 2rem;">
+                        <div class="op-stats">
+                            <div class="stat-box">
+                                <span class="stat-label">MOS</span>
+                                <span class="stat-val">${(member.mos || '—').split('—')[0].trim()}</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Time In Service</span>
+                                <span class="stat-val">${tis}</span>
+                            </div>
                         </div>
                     </div>
 
-                    <p class="op-bio">${member.bio}</p>
+                    <p class="op-bio" style="padding: 0 2rem;">${member.bio || ''}</p>
 
-                    <div class="op-certs-container">
+                    <div class="op-certs-container" style="padding: 0 2rem 2rem;">
                         <div class="op-certs-label">Certifications</div>
                         <div class="op-certs">
                             ${certsHtml}

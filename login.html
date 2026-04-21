@@ -4,30 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | RED SQN</title>
+    <meta name="description" content="Secure authentication portal for Red Squadron members.">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .auth-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 2rem;
+        .auth-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 6rem 1.5rem 3rem;
         }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-        }
-        .form-group input {
+
+        .auth-card {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.5);
-            color: #fff;
+            max-width: 420px;
+            background: var(--bg-surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
         }
-        /* Honeypot field - visually hidden to catch bots */
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent-red), #7f1d1d);
+            border-radius: var(--radius-md);
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 8px 24px var(--accent-red-glow);
+        }
+
+        .auth-title {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+
+        .auth-subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Smooth MFA slide-in */
+        #mfa-section {
+            display: none;
+            animation: fadeInUp 0.3s var(--ease-expo) forwards;
+        }
+
+        .mfa-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.75rem 1rem;
+            background: rgba(220, 38, 38, 0.08);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            border-radius: var(--radius-sm);
+            color: var(--accent-red);
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: var(--text-subtle);
+            font-size: 0.8rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-subtle);
+        }
+
+        /* Honeypot - hidden from humans */
         .hp-field {
             position: absolute;
             top: -9999px;
@@ -35,12 +105,6 @@
             opacity: 0;
             pointer-events: none;
         }
-        .error-msg {
-            color: #ff4444;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        #mfa-section { display: none; }
     </style>
 </head>
 <body>
@@ -48,36 +112,50 @@
         <a href="index.html" class="logo">
             <span class="nav-logo-text">Red Squadron</span>
         </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
     </nav>
 
-    <div class="page-container">
-        <div class="auth-container glass-panel fade-in-up">
-            <h2 class="hero-title" style="font-size: 2rem; margin-bottom: 1rem;">SECURE <span class="text-gradient-accent">LOGIN</span></h2>
-            <div id="error-box" class="error-msg"></div>
+    <div class="auth-wrapper">
+        <div class="auth-card fade-in-up">
 
+            <div class="auth-logo">
+                <div class="auth-logo-mark">R</div>
+                <h1 class="auth-title">SECURE <span class="text-gradient-accent">LOGIN</span></h1>
+                <p class="auth-subtitle">Red Squadron Operations Portal</p>
+            </div>
+
+            <div id="error-box" class="feedback-msg error"></div>
+
+            <!-- Login Form -->
             <form id="login-form">
-                <!-- Honeypot for Bot Detection -->
                 <input type="text" name="honeypot" id="honeypot" class="hp-field" tabindex="-1" autocomplete="off">
-                
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" required>
+                    <input type="text" id="username" required autocomplete="username" placeholder="Enter your callsign">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" required>
+                    <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••">
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Authenticate</button>
+                <button type="submit" id="login-btn" class="btn-primary btn-full" style="margin-top: 0.5rem;">Authenticate</button>
             </form>
 
+            <!-- MFA Form -->
             <form id="mfa-section">
-                <p style="margin-bottom: 1rem; color: var(--text-muted);">Additional Verification Required.</p>
+                <div class="mfa-hint">
+                    🔐 Additional verification required
+                </div>
                 <div class="form-group">
                     <label for="mfa-token">Authenticator Token</label>
-                    <input type="text" id="mfa-token" required>
+                    <input type="text" id="mfa-token" required maxlength="6" inputmode="numeric" placeholder="000000" autocomplete="one-time-code">
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Verify</button>
+                <button type="submit" id="mfa-btn" class="btn-primary btn-full">Verify Identity</button>
+                <button type="button" class="btn-secondary btn-full" style="margin-top: 0.75rem;" onclick="resetToLogin()">← Back to Login</button>
             </form>
+
         </div>
     </div>
 
@@ -86,58 +164,86 @@
         const mfaSection = document.getElementById('mfa-section');
         const errorBox = document.getElementById('error-box');
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            errorBox.style.display = 'none';
+        function showError(msg) {
+            errorBox.className = 'feedback-msg error show';
+            errorBox.textContent = '⚠ ' + msg;
+        }
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const honeypot = document.getElementById('honeypot').value;
+        function hideError() {
+            errorBox.className = 'feedback-msg error';
+        }
+
+        function resetToLogin() {
+            mfaSection.style.display = 'none';
+            loginForm.style.display = 'block';
+            hideError();
+        }
+
+        // Redirect if already logged in
+        fetch('/api/auth/me').then(r => r.json()).then(data => {
+            if (data.loggedIn) window.location.href = 'account.html';
+        }).catch(() => {});
+
+        loginForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            hideError();
+            const btn = document.getElementById('login-btn');
+            btn.classList.add('loading');
 
             try {
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, honeypot })
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value,
+                        honeypot: document.getElementById('honeypot').value
+                    })
                 });
                 const data = await res.json();
-
-                if (!res.ok) throw new Error(data.error || 'Login failed');
+                if (!res.ok) throw new Error(data.error || 'Authentication failed.');
 
                 if (data.adaptiveWarning) {
-                    alert('Security Notice: Login from a new device/IP detected.');
+                    // Non-blocking notice
+                    const note = document.createElement('div');
+                    note.className = 'feedback-msg error show';
+                    note.textContent = '⚠ Login from a new device or IP detected.';
+                    loginForm.prepend(note);
                 }
 
                 if (data.requireMfa) {
                     loginForm.style.display = 'none';
                     mfaSection.style.display = 'block';
+                    setTimeout(() => document.getElementById('mfa-token').focus(), 100);
                 } else {
-                    window.location.href = 'index.html';
+                    window.location.href = 'account.html';
                 }
             } catch (err) {
-                errorBox.innerText = err.message;
-                errorBox.style.display = 'block';
+                showError(err.message);
+            } finally {
+                btn.classList.remove('loading');
             }
         });
 
-        mfaSection.addEventListener('submit', async (e) => {
+        mfaSection.addEventListener('submit', async e => {
             e.preventDefault();
-            errorBox.style.display = 'none';
-            const token = document.getElementById('mfa-token').value;
+            hideError();
+            const btn = document.getElementById('mfa-btn');
+            btn.classList.add('loading');
 
             try {
                 const res = await fetch('/api/auth/mfa/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token })
+                    body: JSON.stringify({ token: document.getElementById('mfa-token').value })
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Verification failed');
-
-                window.location.href = 'index.html';
+                if (!res.ok) throw new Error(data.error || 'Verification failed.');
+                window.location.href = 'account.html';
             } catch (err) {
-                errorBox.innerText = err.message;
-                errorBox.style.display = 'block';
+                showError(err.message);
+            } finally {
+                btn.classList.remove('loading');
             }
         });
     </script>

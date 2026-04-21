@@ -1,130 +1,220 @@
 <div align="center">
-  <img src="assets/logo.png" alt="Red Squadron Logo" width="150" />
-  
-  # Red Squadron
-  **Joint Special Operations Command — Milsim Landing Page**
-  
-  A sleek, modern, and highly-dynamic web application designed for the Red Squadron military simulation community. Built with premium tech-startup aesthetics, glassmorphism UI, a custom Express backend, and a fully featured Admin Panel for centralized data management.
+
+<img src="assets/logo.png" alt="Red Squadron" width="120" />
+
+<br>
+
+# RED SQUADRON
+
+<p>Joint Special Operations Command — Milsim Web Platform</p>
+
+<br>
+
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org)
+[![License](https://img.shields.io/badge/License-MIT-dc2626?style=flat-square)](LICENSE)
+
 </div>
 
----
-
-## ⚡ Features
-
-- **Modern Glassmorphism UI**: High-end visual design with deep dark modes, custom color palettes (Tribe Red & Tribe Gold), and animated gradient orbs.
-- **Admin Command Center**: Secure, restricted-access admin dashboard. Easily manage site settings, operator rosters, and after-action reports via a graphical interface.
-- **Dynamic Content Management**: Fully database-driven backend. Changes made in the Admin Panel instantly reflect on the public site.
-- **Integrated Image Uploads**: Add custom portrait photos directly to roster profiles using the admin file uploader.
-- **Interactive Roster & Operations Log**: 15-slot operator roster with glass cards and a Discord-forum-style feed for mission logs.
-- **Responsive Design**: Built with `clamp()` typography and CSS Grid/Flexbox for all screen sizes.
-- **Secure Authentication**: Session-based auth with rate limiting and secure headers to protect the admin routes.
+<br>
 
 ---
 
-## 🛠️ Tech Stack
+<br>
 
-- **Frontend**: HTML5, Vanilla CSS3 (Custom properties, keyframes, glassmorphism), Vanilla JavaScript (DOM manipulation, fetch API).
-- **Backend**: Node.js, Express.js.
-- **Database**: SQLite3.
-- **Security & Utilities**: Express-Session, Helmet, Express-Rate-Limit, Bcrypt (password hashing), Multer (file uploads).
+A high-fidelity web platform built for the Red Squadron milsim community. Features a glassmorphic dark UI, dynamic content management via an integrated admin dashboard, secure session-based authentication with MFA, and a live operator roster system — all driven by a lightweight SQLite backend with zero external dependencies.
+
+<br>
 
 ---
 
-## 📂 Project Structure
+<br>
 
-```text
-RED-ASQN-04-16-26/
-├── index.html          # Landing page
-├── about.html          # Manifesto + stats
-├── roster.html         # Operator roster
-├── operations.html     # Mission logs and AARs
-├── account.html        # User account & MFA settings
-├── admin.html          # Admin Command Center dashboard
-├── login.html          # Secure login portal
+## Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Content Management](#content-management)
+- [Deployment](#deployment)
+- [Security](#security)
+
+<br>
+
+---
+
+## Features
+
+**Frontend**
+
+- Glassmorphism dark UI with animated gradient orbs and smooth parallax
+- `clamp()`-based fluid typography, CSS Grid/Flexbox for all layouts
+- Entrance animations with staggered delays, spring easing, and hover micro-interactions
+- Fully responsive from mobile to ultrawide
+
+**Backend & Data**
+
+- All public content (roster, operations, site info) is database-driven — no hardcoded data
+- Admin panel for managing roster entries, mission logs, site text, and user accounts
+- Portrait image uploads stored in `assets/roster/` via Multer
+- About page operator count synced live from the database
+
+**Authentication & Security**
+
+- Session-based auth with bcrypt password hashing
+- Time-based One-Time Password (TOTP) MFA via `otplib`, with QR code setup flow
+- Rate limiting and account lockout after repeated failed login attempts
+- Honeypot bot detection on the login form
+- Adaptive authentication warning on new device/IP detection
+- Helmet.js secure headers
+- Role-based access control (user / admin)
+
+<br>
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | HTML5, Vanilla CSS3, Vanilla JavaScript |
+| Backend | Node.js, Express.js |
+| Database | SQLite3 |
+| Auth | express-session, bcrypt, otplib |
+| File Uploads | Multer |
+| Security | Helmet, express-rate-limit |
+| Fonts | Google Fonts — Outfit, Inter |
+
+<br>
+
+---
+
+## Project Structure
+
+```
+red-sqn-hero-page/
 │
-├── css/                # Stylesheets
-├── assets/             # Brand assets and uploaded roster images
-├── routes/             # Express.js API routers
-│   ├── api.js          # CRUD endpoints for site data
-│   └── auth.js         # Authentication endpoints
+├── index.html              # Landing page with hero + bento grid
+├── about.html              # Manifesto and live stats
+├── roster.html             # Operator cards with portrait banners
+├── operations.html         # Mission logs and AARs
+├── account.html            # User settings, MFA, password change
+├── admin.html              # Admin command center
+├── login.html              # Secure authentication portal
 │
-├── server.js           # Express app entry point
-├── database.js         # SQLite connection and auto-migration
-├── database.sqlite     # Local database (ignored in git)
-├── package.json        # Dependencies
-└── README.md
+├── css/
+│   ├── style.css           # Global design system and tokens
+│   ├── admin.css           # Admin panel layout and components
+│   ├── roster.css          # Roster grid and operator cards
+│   └── operations.css      # Operations log styles
+│
+├── assets/
+│   ├── logo.png
+│   ├── favicon.png
+│   └── roster/             # Uploaded operator portraits
+│
+├── routes/
+│   ├── api.js              # Public + admin CRUD endpoints
+│   └── auth.js             # Login, MFA, session, password routes
+│
+├── server.js               # Express app entry point
+├── database.js             # SQLite connection, schema, and seed data
+├── database.sqlite         # Local database (git-ignored)
+└── package.json
 ```
 
----
-
-## ⚙️ How to Update Content
-
-You do **not** need to touch any code to update the website.
-
-1. Navigate to `/login.html` and log in with your admin credentials. 
-   *(Default on first launch: `admin` / `admin123`. **Change this immediately!**)*
-2. Go to your Account Settings and click **Go to Admin Panel**.
-3. Use the **Site Info**, **Roster**, and **Operations** tabs to modify the live site content.
-4. Upload images directly via the "Add Operator" modal.
+<br>
 
 ---
 
-## 🚀 Deployment Guide
+## Getting Started
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) installed on the server (v16+ recommended).
-- Git installed.
-
-### 1 — Clone and Install
+**Prerequisites:** Node.js v16 or higher, Git.
 
 ```bash
-# Clone the repo
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git red-squadron
-cd red-squadron
+# Clone
+git clone https://github.com/YOUR_USERNAME/red-sqn-hero-page.git
+cd red-sqn-hero-page
 
 # Install dependencies
 npm install
-```
 
-### 2 — Configure Environment Variables
-
-Create a `.env` file or export variables directly in your environment:
-```bash
-export PORT=8080
-export SESSION_SECRET="your_very_long_and_random_secret_key_here"
-```
-
-### 3 — Run the Server
-
-```bash
-# Production mode
-npm start
-
-# Or development mode
+# Start the development server
 npm run dev
 ```
 
-> **Note on Initial Boot**: When the server runs for the very first time, `database.js` will automatically create the required SQLite tables and seed them with default data.
+The server starts on `http://localhost:8080`. On first boot, `database.js` automatically creates the SQLite schema and seeds it with default content.
 
-### 4 — Keep it running with PM2 (recommended)
+**Default admin credentials — change these immediately:**
+
+```
+username: admin
+password: admin123
+```
+
+<br>
+
+---
+
+## Content Management
+
+No code changes are needed to update the site. Everything is managed through the admin panel.
+
+1. Navigate to `/login.html` and authenticate
+2. Go to **Account Settings** → **Open Admin Panel**
+3. Use the sidebar to access:
+
+| Module | What you can manage |
+|---|---|
+| **Dashboard** | Live stats and system log |
+| **Site Info** | About text, bento box copy, page headers, stats |
+| **Roster** | Add, edit, delete operators; upload portrait images |
+| **Operations** | Create and manage mission logs and AARs |
+| **Users** | Assign admin roles, delete accounts |
+
+<br>
+
+---
+
+## Deployment
+
+### 1 — Environment
+
+Create a `.env` file or export variables in your shell:
+
+```bash
+PORT=8080
+SESSION_SECRET=your_long_random_secret_here
+```
+
+### 2 — Run
+
+```bash
+# Production
+npm start
+
+# Development (auto-restart on changes)
+npm run dev
+```
+
+### 3 — Process Manager (recommended)
 
 ```bash
 npm install -g pm2
 pm2 start server.js --name red-squadron
 pm2 save
-pm2 startup   # follow the printed command to auto-start on reboot
+pm2 startup
 ```
 
-### Nginx Reverse Proxy (recommended for production)
-
-If you want the site at a domain (e.g., `redsqn.example.com`) with HTTPS:
+### 4 — Nginx Reverse Proxy
 
 ```nginx
 server {
     listen 80;
-    server_name redsqn.example.com;
+    server_name yourdomain.com;
 
-    # Important: Increase client_max_body_size if uploading large portrait images
     client_max_body_size 5M;
 
     location / {
@@ -138,11 +228,41 @@ server {
 }
 ```
 
-Then run `sudo certbot --nginx -d redsqn.example.com` for free HTTPS via Let's Encrypt.
+Then obtain a certificate:
+
+```bash
+sudo certbot --nginx -d yourdomain.com
+```
+
+<br>
+
+---
+
+## Security
+
+| Mechanism | Implementation |
+|---|---|
+| Password storage | bcrypt, 10 salt rounds |
+| Session management | express-session with signed cookies |
+| MFA | TOTP (RFC 6238) via otplib, QR code provisioning |
+| Brute force protection | 5-attempt lockout + 15-min IP rate limit |
+| Bot mitigation | Honeypot field on login form |
+| Secure headers | Helmet.js |
+| Adaptive auth | Warning triggered on new IP or user agent |
+| Access control | Role-checked middleware on all admin routes |
+
+<br>
 
 ---
 
 <div align="center">
-  <i>"Execute where others cannot."</i><br>
-  Built for <b>Red Squadron</b>
+
+<br>
+
+*"Execute where others cannot."*
+
+<br>
+
+Built for **Red Squadron** — Joint Special Operations Command
+
 </div>

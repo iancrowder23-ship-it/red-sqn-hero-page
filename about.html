@@ -146,23 +146,29 @@
             document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.about.titleNormal;
             document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.about.titleHighlight;
 
-            // Parse the about text. It might have <br><br> tags. We'll wrap them in <p> tags for better styling.
+            // Parse the about text.
             const rawAbout = SITE_INFO.about;
             const paragraphs = rawAbout.split('<br><br>').map(p => `<p>${p.trim()}</p>`).join('');
             document.getElementById('about-text').innerHTML = paragraphs;
 
-            // Populate Stats
-            const statsGrid = document.getElementById('stats-grid');
-            let statsHtml = '';
-            SITE_INFO.stats.forEach(stat => {
-                statsHtml += `
-                    <div class="stat-card glass-panel">
-                        <h3>${stat.value}</h3>
-                        <p>${stat.label}</p>
-                    </div>
-                `;
+            // Populate Stats — but fetch live roster count first
+            fetch('/api/data/roster').then(r => r.json()).then(roster => {
+                const liveOperatorCount = roster.length;
+                const statsGrid = document.getElementById('stats-grid');
+                let statsHtml = '';
+                SITE_INFO.stats.forEach(stat => {
+                    // Replace the operators stat with live count
+                    const isOperatorsStat = stat.label.toLowerCase().includes('operator');
+                    const displayValue = isOperatorsStat ? `${liveOperatorCount}` : stat.value;
+                    statsHtml += `
+                        <div class="stat-card glass-panel">
+                            <h3>${displayValue}</h3>
+                            <p>${stat.label}</p>
+                        </div>
+                    `;
+                });
+                statsGrid.innerHTML = statsHtml;
             });
-            statsGrid.innerHTML = statsHtml;
         });
 
         // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
