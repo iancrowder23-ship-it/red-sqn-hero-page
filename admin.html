@@ -7,6 +7,7 @@
     <meta name="description" content="Administrative control panel for Red Squadron.">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/plans.css">
 </head>
 <body>
     <nav class="navbar">
@@ -39,6 +40,7 @@
             <div class="admin-nav-item" data-tab="site-info"><span class="nav-icon">⚙</span> Site Info</div>
             <div class="admin-nav-item" data-tab="roster"><span class="nav-icon">◈</span> Roster</div>
             <div class="admin-nav-item" data-tab="operations"><span class="nav-icon">◉</span> Operations</div>
+            <div class="admin-nav-item" data-tab="plans"><span class="nav-icon">🗺</span> Op Planning</div>
             <div class="admin-nav-item" data-tab="users"><span class="nav-icon">◎</span> Users</div>
         </aside>
 
@@ -64,6 +66,10 @@
                         <div class="stat-value" id="stat-users">—</div>
                     </div>
                     <div class="stat-card">
+                        <div class="stat-label">Op Plans</div>
+                        <div class="stat-value" id="stat-plans">—</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="stat-label">Status</div>
                         <div class="stat-value" style="font-size: 1rem; color: #4ade80;">ONLINE</div>
                     </div>
@@ -79,7 +85,7 @@
             <div id="tab-site-info" class="tab-pane">
                 <div class="admin-page-header">
                     <h2 class="admin-page-title">Site <span class="text-gradient-accent">Info</span></h2>
-                    <button class="btn-primary" onclick="saveSiteInfo()" id="save-site-btn">Save Changes</button>
+                    <button class="btn-primary" id="save-site-btn" data-action="save-site">Save Changes</button>
                 </div>
                 <div class="glass-panel" style="padding: 1.5rem;">
                     <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">Edit core site information as JSON. Changes are applied immediately on save.</p>
@@ -91,7 +97,7 @@
             <div id="tab-roster" class="tab-pane">
                 <div class="admin-page-header">
                     <h2 class="admin-page-title">Roster <span class="text-gradient-accent">Management</span></h2>
-                    <button class="btn-primary" onclick="openModal('roster-modal', 'add')">+ Add Operator</button>
+                    <button class="btn-primary" data-action="open-roster-add">+ Add Operator</button>
                 </div>
                 <div class="glass-panel" style="padding: 1rem; overflow-x: auto;">
                     <table class="admin-table">
@@ -113,7 +119,7 @@
             <div id="tab-operations" class="tab-pane">
                 <div class="admin-page-header">
                     <h2 class="admin-page-title">Operations <span class="text-gradient-accent">Log</span></h2>
-                    <button class="btn-primary" onclick="openModal('ops-modal', 'add')">+ Add Operation</button>
+                    <button class="btn-primary" data-action="open-ops-add">+ Add Operation</button>
                 </div>
                 <div class="glass-panel" style="padding: 1rem; overflow-x: auto;">
                     <table class="admin-table">
@@ -152,7 +158,92 @@
                 </div>
             </div>
 
+            <!-- Plans Tab -->
+            <div id="tab-plans" class="tab-pane">
+                <div class="admin-page-header">
+                    <h2 class="admin-page-title">Operation <span class="text-gradient-accent">Planning</span></h2>
+                    <button class="btn-primary" id="admin-add-plan-btn">+ New Plan</button>
+                </div>
+
+                <!-- Kanban board -->
+                <div class="plans-board" id="admin-plans-board">
+                    <!-- Planning column -->
+                    <div class="plans-column plans-col-planning">
+                        <div class="plans-column-header">
+                            <span class="plans-column-title">📌 Planning</span>
+                            <span class="plans-count" id="admin-count-planning">0</span>
+                        </div>
+                        <div id="admin-col-planning"></div>
+                        <div class="plans-empty" id="admin-empty-planning">No plans yet</div>
+                    </div>
+
+                    <!-- Approved column -->
+                    <div class="plans-column plans-col-approved">
+                        <div class="plans-column-header">
+                            <span class="plans-column-title">✅ Approved</span>
+                            <span class="plans-count" id="admin-count-approved">0</span>
+                        </div>
+                        <div id="admin-col-approved"></div>
+                        <div class="plans-empty" id="admin-empty-approved">No approved plans</div>
+                    </div>
+
+                    <!-- Cancelled column -->
+                    <div class="plans-column plans-col-cancelled">
+                        <div class="plans-column-header">
+                            <span class="plans-column-title">🚫 Cancelled</span>
+                            <span class="plans-count" id="admin-count-cancelled">0</span>
+                        </div>
+                        <div id="admin-col-cancelled"></div>
+                        <div class="plans-empty" id="admin-empty-cancelled">No cancelled plans</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
         </main>
+    </div>
+
+    <!-- Plan Modal -->
+    <div id="plan-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="plan-modal-title">Add Operation Plan</h3>
+                <button class="modal-close" data-close-modal="plan-modal" title="Close">✕</button>
+            </div>
+            <form id="plan-form">
+                <input type="hidden" id="plan-id">
+                <div class="form-group"><label>Operation Name *</label><input type="text" id="p-title" required placeholder="e.g. Operation Night Hawk"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="form-group"><label>Planned Date *</label><input type="date" id="p-date" required></div>
+                    <div class="form-group">
+                        <label>Op Type</label>
+                        <select id="p-type">
+                            <option value="">— Select —</option>
+                            <option value="Direct Action">Direct Action</option>
+                            <option value="Reconnaissance">Reconnaissance</option>
+                            <option value="Hostage Rescue">Hostage Rescue</option>
+                            <option value="Sabotage">Sabotage</option>
+                            <option value="Escort">Escort</option>
+                            <option value="Defense">Defense</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Theater / AO</label><input type="text" id="p-theater" placeholder="e.g. Eastern Europe"></div>
+                <div class="form-group"><label>Planned Commander</label><input type="text" id="p-commander" placeholder="Callsign of CO"></div>
+                <div class="form-group"><label>Personnel (comma-separated)</label><input type="text" id="p-participants" placeholder="e.g. Alpha-1, Bravo"></div>
+                <div class="form-group"><label>Mission Briefing</label><textarea id="p-briefing" rows="4" placeholder="Objectives, ROE, special notes..."></textarea></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="p-status">
+                        <option value="planning">Planning</option>
+                        <option value="approved">Approved</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary btn-full" id="plan-submit-btn">Save Plan</button>
+            </form>
+        </div>
     </div>
 
     <!-- Roster Modal -->
@@ -160,9 +251,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="roster-modal-title">Add Operator</h3>
-                <button class="modal-close" onclick="closeModal('roster-modal')" title="Close">✕</button>
+                <button class="modal-close" data-close-modal="roster-modal" title="Close">✕</button>
             </div>
-            <form id="roster-form" onsubmit="submitRoster(event)">
+            <form id="roster-form">
                 <input type="hidden" id="roster-id">
                 <div class="form-group"><label>Callsign *</label><input type="text" id="r-callsign" required placeholder="e.g. GHOST-1"></div>
                 <div class="form-group"><label>Rank</label><input type="text" id="r-rank" placeholder="e.g. Staff Sergeant"></div>
@@ -191,9 +282,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="ops-modal-title">Add Operation</h3>
-                <button class="modal-close" onclick="closeModal('ops-modal')" title="Close">✕</button>
+                <button class="modal-close" data-close-modal="ops-modal" title="Close">✕</button>
             </div>
-            <form id="ops-form" onsubmit="submitOp(event)">
+            <form id="ops-form">
                 <input type="hidden" id="o-id">
                 <div class="form-group"><label>Title *</label><input type="text" id="o-title" required placeholder="Operation name"></div>
                 <div class="form-group"><label>Date</label><input type="date" id="o-date"></div>
@@ -250,6 +341,56 @@
             });
         });
 
+        // Central event delegation — handles all static & dynamic action buttons
+        document.addEventListener('click', e => {
+            // Static data-action buttons
+            const action = e.target.dataset?.action;
+            if (action === 'save-site')      { saveSiteInfo(); return; }
+            if (action === 'open-roster-add') { openModal('roster-modal', 'add'); return; }
+            if (action === 'open-ops-add')    { openModal('ops-modal', 'add'); return; }
+
+            // Modal close buttons
+            const closeTarget = e.target.closest('[data-close-modal]');
+            if (closeTarget) { closeModal(closeTarget.dataset.closeModal); return; }
+
+            // Dynamic roster table buttons
+            const rosterBtn = e.target.closest('[data-roster-action]');
+            if (rosterBtn) {
+                const id = parseInt(rosterBtn.dataset.rosterId, 10);
+                if (rosterBtn.dataset.rosterAction === 'edit')   editRoster(id);
+                if (rosterBtn.dataset.rosterAction === 'delete') deleteRoster(id);
+                return;
+            }
+
+            // Dynamic ops table buttons
+            const opsBtn = e.target.closest('[data-ops-action]');
+            if (opsBtn) {
+                const id = parseInt(opsBtn.dataset.opsId, 10);
+                if (opsBtn.dataset.opsAction === 'edit')   editOp(id);
+                if (opsBtn.dataset.opsAction === 'delete') deleteOp(id);
+                return;
+            }
+
+            // Dynamic users table buttons
+            const userBtn = e.target.closest('[data-user-action]');
+            if (userBtn) {
+                const id = parseInt(userBtn.dataset.userId, 10);
+                if (userBtn.dataset.userAction === 'delete') deleteUser(id);
+                return;
+            }
+        });
+
+        // Role select change — delegated via change event
+        document.addEventListener('change', e => {
+            const sel = e.target.closest('[data-role-user-id]');
+            if (sel) changeRole(parseInt(sel.dataset.roleUserId, 10), sel.value);
+        });
+
+        // Form submissions
+        document.getElementById('roster-form').addEventListener('submit', submitRoster);
+        document.getElementById('ops-form').addEventListener('submit', submitOp);
+        document.getElementById('plan-form').addEventListener('submit', submitPlan);
+
         function termLog(msg, type = 'sys') {
             const term = document.getElementById('terminal-log');
             const line = document.createElement('div');
@@ -289,6 +430,13 @@
                 document.getElementById('stat-users').textContent = usersData.length;
                 termLog(`Users loaded: ${usersData.length} accounts.`, 'ok');
 
+                // Plans
+                const pRes = await fetch('/api/data/plans');
+                plansData = await pRes.json();
+                renderAdminPlansBoard();
+                document.getElementById('stat-plans').textContent = plansData.length;
+                termLog(`Plans loaded: ${plansData.length} entries.`, 'ok');
+
             } catch (err) {
                 termLog(`Error loading data: ${err.message}`, 'err');
             }
@@ -325,12 +473,12 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${op.callsign}</strong></td>
-                    <td style="color: var(--text-muted);">${op.rank || '—'}</td>
-                    <td style="color: var(--text-muted);">${op.role || '—'}</td>
+                    <td style="color: var(--text-muted);">${op.rank || '\u2014'}</td>
+                    <td style="color: var(--text-muted);">${op.role || '\u2014'}</td>
                     <td><span class="status-badge ${op.status}">${op.status}</span></td>
                     <td>
-                        <button class="action-btn edit" onclick="editRoster(${op.id})">Edit</button>
-                        <button class="action-btn delete" onclick="deleteRoster(${op.id})">Delete</button>
+                        <button class="action-btn edit" data-roster-action="edit" data-roster-id="${op.id}">Edit</button>
+                        <button class="action-btn delete" data-roster-action="delete" data-roster-id="${op.id}">Delete</button>
                     </td>`;
                 tbody.appendChild(tr);
             });
@@ -403,12 +551,12 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${op.title}</strong></td>
-                    <td style="color: var(--text-muted);">${op.date || '—'}</td>
+                    <td style="color: var(--text-muted);">${op.date || '\u2014'}</td>
                     <td><span class="status-badge ${op.status}">${op.status}</span></td>
-                    <td style="color: var(--text-muted);">${op.theater || '—'}</td>
+                    <td style="color: var(--text-muted);">${op.theater || '\u2014'}</td>
                     <td>
-                        <button class="action-btn edit" onclick="editOp(${op.id})">Edit</button>
-                        <button class="action-btn delete" onclick="deleteOp(${op.id})">Delete</button>
+                        <button class="action-btn edit" data-ops-action="edit" data-ops-id="${op.id}">Edit</button>
+                        <button class="action-btn delete" data-ops-action="delete" data-ops-id="${op.id}">Delete</button>
                     </td>`;
                 tbody.appendChild(tr);
             });
@@ -475,13 +623,13 @@
                     <td style="color: var(--text-subtle);">#${u.id}</td>
                     <td><strong>${u.username}</strong></td>
                     <td>
-                        <select class="role-select" onchange="changeRole(${u.id}, this.value)">
+                        <select class="role-select" data-role-user-id="${u.id}">
                             <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
                             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
                         </select>
                     </td>
                     <td><span class="status-badge ${u.mfa_enabled ? 'active' : 'reserve'}">${u.mfa_enabled ? 'Enabled' : 'Disabled'}</span></td>
-                    <td><button class="action-btn delete" onclick="deleteUser(${u.id})">Delete</button></td>`;
+                    <td><button class="action-btn delete" data-user-action="delete" data-user-id="${u.id}">Delete</button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -505,6 +653,151 @@
             }
             termLog(`User #${id} deleted.`, 'warn');
             loadAllData();
+        }
+
+        // ── PLANS ──────────────────────────────────────────────────────────
+        let plansData = [];
+        let planMode  = 'add';
+
+        async function loadPlansData() {
+            const res = await fetch('/api/data/plans');
+            plansData = await res.json();
+            renderAdminPlansBoard();
+            termLog(`Plans loaded: ${plansData.length} entries.`, 'ok');
+        }
+
+        function renderAdminPlansBoard() {
+            const cols = { planning: [], approved: [], cancelled: [] };
+            plansData.forEach(p => { (cols[p.status] || cols.planning).push(p); });
+
+            ['planning', 'approved', 'cancelled'].forEach(status => {
+                const col   = document.getElementById(`admin-col-${status}`);
+                const empty = document.getElementById(`admin-empty-${status}`);
+                const count = document.getElementById(`admin-count-${status}`);
+                col.innerHTML = '';
+                const items = cols[status];
+                count.textContent = items.length;
+                empty.style.display = items.length ? 'none' : 'block';
+                items.forEach(plan => col.appendChild(buildAdminPlanCard(plan)));
+            });
+        }
+
+        function fmtPlanDate(d) {
+            if (!d) return '—';
+            return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        }
+
+        function buildAdminPlanCard(plan) {
+            const parts = (plan.participants || []).map(p => `<span class="plan-participant-chip">${p}</span>`).join('');
+            let actions = `<button class="action-btn edit" data-plan-action="edit" data-plan-id="${plan.id}">Edit</button>`;
+            if (plan.status === 'planning') {
+                actions += `<button class="action-btn" style="color:#4ade80;border-color:rgba(74,222,128,.3);" data-plan-action="approve" data-plan-id="${plan.id}">Approve</button>`;
+                actions += `<button class="action-btn" style="color:#f87171;border-color:rgba(248,113,113,.3);" data-plan-action="cancel" data-plan-id="${plan.id}">Cancel</button>`;
+            }
+            if (plan.status !== 'planning') {
+                actions += `<button class="action-btn" style="color:#60a5fa;border-color:rgba(96,165,250,.3);" data-plan-action="reopen" data-plan-id="${plan.id}">Reopen</button>`;
+            }
+            actions += `<button class="action-btn delete" data-plan-action="delete" data-plan-id="${plan.id}">Delete</button>`;
+
+            const div = document.createElement('div');
+            div.className = 'plan-card';
+            div.dataset.id = plan.id;
+            div.innerHTML = `
+                <div class="plan-card-title">${plan.title}</div>
+                <div class="plan-card-meta">
+                    <span>📅 ${fmtPlanDate(plan.planned_date)}</span>
+                    ${plan.theater    ? `<span>📍 ${plan.theater}</span>` : ''}
+                    ${plan.type       ? `<span>⚡ ${plan.type}</span>` : ''}
+                    ${plan.commander  ? `<span>🎖 ${plan.commander}</span>` : ''}
+                </div>
+                ${plan.briefing ? `<p class="plan-card-briefing">${plan.briefing}</p>` : ''}
+                ${parts         ? `<div class="plan-card-participants">${parts}</div>` : ''}
+                <div class="plan-card-footer">
+                    <span class="plan-creator">by ${plan.created_by || 'Unknown'}</span>
+                    <div class="plan-admin-actions">${actions}</div>
+                </div>
+            `;
+            return div;
+        }
+
+        // Delegate plan card button clicks inside the board
+        document.getElementById('admin-plans-board').addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-plan-action]');
+            if (!btn) return;
+            const action = btn.dataset.planAction;
+            const id     = parseInt(btn.dataset.planId, 10);
+            if (action === 'edit')    openPlanModal(id);
+            if (action === 'approve') await quickPlanStatus(id, 'approved');
+            if (action === 'cancel')  await quickPlanStatus(id, 'cancelled');
+            if (action === 'reopen')  await quickPlanStatus(id, 'planning');
+            if (action === 'delete')  await deletePlan(id);
+        });
+
+        document.getElementById('admin-add-plan-btn').addEventListener('click', () => openPlanModal());
+
+        function openPlanModal(id) {
+            planMode = id ? 'edit' : 'add';
+            document.getElementById('plan-form').reset();
+            document.getElementById('plan-id').value = '';
+            document.getElementById('plan-modal-title').textContent = id ? 'Edit Plan' : 'Add Operation Plan';
+
+            if (id) {
+                const plan = plansData.find(p => p.id === id);
+                if (!plan) return;
+                document.getElementById('plan-id').value          = plan.id;
+                document.getElementById('p-title').value          = plan.title        || '';
+                document.getElementById('p-date').value           = plan.planned_date  || '';
+                document.getElementById('p-type').value           = plan.type          || '';
+                document.getElementById('p-theater').value        = plan.theater       || '';
+                document.getElementById('p-commander').value      = plan.commander     || '';
+                document.getElementById('p-participants').value   = (plan.participants || []).join(', ');
+                document.getElementById('p-briefing').value       = plan.briefing      || '';
+                document.getElementById('p-status').value         = plan.status        || 'planning';
+            }
+            document.getElementById('plan-modal').style.display = 'flex';
+        }
+
+        async function submitPlan(e) {
+            e.preventDefault();
+            const btn  = document.getElementById('plan-submit-btn');
+            const editId = document.getElementById('plan-id').value;
+            btn.classList.add('loading');
+            const payload = {
+                title:        document.getElementById('p-title').value.trim(),
+                planned_date: document.getElementById('p-date').value,
+                type:         document.getElementById('p-type').value,
+                theater:      document.getElementById('p-theater').value.trim(),
+                commander:    document.getElementById('p-commander').value.trim(),
+                participants: document.getElementById('p-participants').value.trim(),
+                briefing:     document.getElementById('p-briefing').value.trim(),
+                status:       document.getElementById('p-status').value,
+            };
+            const url    = editId ? `/api/data/plans/${editId}` : '/api/data/plans';
+            const method = editId ? 'PUT' : 'POST';
+            await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            btn.classList.remove('loading');
+            closeModal('plan-modal');
+            termLog(`Plan ${planMode === 'add' ? 'created' : 'updated'}.`, 'ok');
+            loadPlansData();
+        }
+
+        async function quickPlanStatus(id, status) {
+            const plan = plansData.find(p => p.id === id);
+            if (!plan) return;
+            await fetch(`/api/data/plans/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...plan, participants: JSON.stringify(plan.participants || []), status })
+            });
+            termLog(`Plan #${id} status → ${status}.`, 'ok');
+            loadPlansData();
+        }
+
+        async function deletePlan(id) {
+            if (!confirm('Permanently delete this plan?')) return;
+            await fetch(`/api/data/plans/${id}`, { method: 'DELETE' });
+            termLog(`Plan #${id} deleted.`, 'warn');
+            loadPlansData();
         }
     </script>
 </body>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Operations | Red Squadron</title>
-    <meta name="description" content="After-action reports and operation logs of Red Squadron.">
+    <meta name="description" content="After-action reports and declassified mission records of Red Squadron.">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/operations.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -33,6 +33,7 @@
     </nav>
 
     <main class="page-container">
+        <!-- Page header -->
         <div class="ops-header fade-in-up">
             <div class="badge" style="margin-bottom: 1.5rem;">
                 <span class="badge-dot"></span> <span id="page-badge">After-Action Reports</span>
@@ -43,6 +44,7 @@
             <p class="hero-subtitle" id="page-subtitle">Classified mission records of Red Squadron.</p>
         </div>
 
+        <!-- AAR feed -->
         <div class="ops-feed fade-in-up delay-2" id="opsFeed">
             <!-- Posts rendered by JS -->
         </div>
@@ -52,7 +54,7 @@
         const DISCORD_LINK = "https://discord.gg/your-invite-link";
         document.getElementById('nav-enlist').href = DISCORD_LINK;
 
-        // Check Auth state for Nav
+        // ── Auth check & nav update ──────────────────────────────────────────
         fetch('/api/auth/me').then(res => res.json()).then(data => {
             const authBtn = document.getElementById('nav-auth');
             if (data.loggedIn) {
@@ -61,17 +63,18 @@
                 authBtn.classList.remove('btn-secondary');
                 authBtn.classList.add('btn-primary');
             }
-        }).catch(e => console.error('Auth Check Error', e));
+        }).catch(() => {});
 
+        // ── Site info ────────────────────────────────────────────────────────
         fetch('/api/data/site_info').then(res => res.json()).then(SITE_INFO => {
-            // Populate Header
-            document.getElementById('page-badge').innerText = SITE_INFO.pageHeaders.operations.badge;
-            document.getElementById('page-title-normal').innerText = SITE_INFO.pageHeaders.operations.titleNormal;
-            document.getElementById('page-title-highlight').innerText = SITE_INFO.pageHeaders.operations.titleHighlight;
-            document.getElementById('page-subtitle').innerText = SITE_INFO.pageHeaders.operations.subtitle;
-        });
+            const h = SITE_INFO.pageHeaders?.operations || {};
+            if (h.badge)          document.getElementById('page-badge').innerText = h.badge;
+            if (h.titleNormal)    document.getElementById('page-title-normal').innerText = h.titleNormal;
+            if (h.titleHighlight) document.getElementById('page-title-highlight').innerText = h.titleHighlight;
+            if (h.subtitle)       document.getElementById('page-subtitle').innerText = h.subtitle;
+        }).catch(() => {});
 
-        // Parallax — drive CSS vars on root so it doesn't fight orbFloat animation
+        // ── Parallax ──────────────────────────────────────────────────────────
         document.addEventListener('mousemove', (e) => {
             const x = ((e.clientX / window.innerWidth)  - 0.5) * 24;
             const y = ((e.clientY / window.innerHeight) - 0.5) * 24;
@@ -79,11 +82,12 @@
             document.documentElement.style.setProperty('--parallax-y', `${y}px`);
         });
 
+        // ── Status badge helper ───────────────────────────────────────────────
         function getStatusBadge(status) {
             const map = {
-                success: { cls: 'status-op-success', label: '✓ Success' },
-                failure: { cls: 'status-op-failure', label: '✗ Failed' },
-                ongoing: { cls: 'status-op-ongoing', label: '● Ongoing' },
+                success:    { cls: 'status-op-success',    label: '✓ Success' },
+                failure:    { cls: 'status-op-failure',    label: '✗ Failed' },
+                ongoing:    { cls: 'status-op-ongoing',    label: '● Ongoing' },
                 classified: { cls: 'status-op-classified', label: '⬛ Classified' }
             };
             const s = map[status] || map.classified;
@@ -95,47 +99,53 @@
             return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         }
 
+        // ── AAR feed ──────────────────────────────────────────────────────────
         const feed = document.getElementById('opsFeed');
-        
+
         fetch('/api/data/operations').then(res => res.json()).then(OPERATIONS => {
             const sorted = [...OPERATIONS].sort((a, b) => new Date(b.date) - new Date(a.date));
 
+            if (sorted.length === 0) {
+                feed.innerHTML = `<div style="text-align:center;padding:4rem 2rem;color:var(--text-muted);"><p style="font-size:1.1rem;">📁 No after-action reports filed yet.</p></div>`;
+                return;
+            }
+
             sorted.forEach((op, i) => {
-                const tags = (op.tags || []).map(t => `<span class="op-tag">${t}</span>`).join('');
-                const participants = (op.participants || []).map(p => `<span class="op-participant">${p}</span>`).join('');
+                const tags         = (op.tags         || []).map(t => `<span class="op-tag">${t}</span>`).join('');
+                const participants = (op.participants  || []).map(p => `<span class="op-participant">${p}</span>`).join('');
 
                 const card = document.createElement('article');
                 card.className = 'op-card glass-panel fade-in-up';
                 card.style.animationDelay = `${0.15 + (i * 0.1)}s`;
-                
+
                 card.innerHTML = `
                     <div class="op-card-header">
                         <div class="op-card-meta">
                             <span class="op-id">#${String(op.id).padStart(3, '0')}</span>
                             <span class="op-date">${formatDate(op.date)}</span>
-                            <span class="op-theater">📍 ${op.theater}</span>
+                            <span class="op-theater">📍 ${op.theater || '—'}</span>
                         </div>
                         ${getStatusBadge(op.status)}
                     </div>
 
                     <div class="op-title-row">
                         <h2 class="op-title">${op.title}</h2>
-                        <span class="op-type">${op.type}</span>
+                        <span class="op-type">${op.type || ''}</span>
                     </div>
 
                     <div class="op-posted-by">
                         <img src="assets/logo.png" alt="" class="op-avatar" style="object-fit: cover;">
                         <div>
-                            <span class="op-author">Posted by ${op.commanderCallsign}</span>
+                            <span class="op-author">Posted by ${op.commanderCallsign || 'Unknown'}</span>
                             <span class="op-co-role">Commanding Officer</span>
                         </div>
                     </div>
 
-                    <p class="op-summary">${op.summary}</p>
+                    <p class="op-summary">${op.summary || ''}</p>
 
                     <details class="op-details-block">
                         <summary class="op-details-toggle">Full After-Action Report</summary>
-                        <div class="op-details-body">${op.details}</div>
+                        <div class="op-details-body">${op.details || ''}</div>
                     </details>
 
                     <div class="op-footer">
@@ -148,6 +158,8 @@
                 `;
                 feed.appendChild(card);
             });
+        }).catch(() => {
+            feed.innerHTML = `<p style="color:var(--text-muted);text-align:center;">Failed to load operations.</p>`;
         });
     </script>
 </body>

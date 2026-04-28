@@ -27,9 +27,12 @@ const db = new sqlite3.Database(dbPath, (err) => {
             // Default admin account
             db.get("SELECT * FROM users WHERE username = ?", ["admin"], (err, row) => {
                 if (!row) {
-                    const hash = bcrypt.hashSync("admin123", 10);
+                    const hash = bcrypt.hashSync("admin123", 12);
                     db.run("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ["admin", hash, "admin"]);
-                    console.log("Default admin account created (admin / admin123). Please change the password!");
+                    console.warn('╔══════════════════════════════════════════════════════╗');
+                    console.warn('║  [SECURITY] Default admin created: admin / admin123  ║');
+                    console.warn('║  CHANGE THIS PASSWORD IMMEDIATELY via Account page.  ║');
+                    console.warn('╚══════════════════════════════════════════════════════╝');
                 }
             });
 
@@ -55,7 +58,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 portrait TEXT
             )`);
 
-            // Operations Table
+            // Operations Table (completed AARs)
             db.run(`CREATE TABLE IF NOT EXISTS operations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
@@ -68,6 +71,21 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 summary TEXT,
                 details TEXT,
                 tags TEXT
+            )`);
+
+            // Operation Plans Table (upcoming / in-planning ops)
+            db.run(`CREATE TABLE IF NOT EXISTS operation_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                planned_date TEXT,
+                theater TEXT,
+                type TEXT,
+                commander TEXT,
+                briefing TEXT,
+                participants TEXT DEFAULT '[]',
+                status TEXT DEFAULT 'planning',
+                created_by TEXT,
+                created_at DATETIME DEFAULT (datetime('now'))
             )`);
 
             // Seed Site Info

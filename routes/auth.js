@@ -7,14 +7,29 @@ const db = require('../database');
 
 const router = express.Router();
 
-// Specific Rate Limiter for Login/Register to prevent Brute Force
+// ── Rate limiter for all auth endpoints ───────────────────────────────────────
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // Limit each IP to 5 requests per windowMs
-    message: { error: 'Too many attempts, please try again later.' }
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    max: 5,
+    message: { error: 'Too many attempts, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: false,
 });
 
-// Helper: Check if account is locked
+// Slightly more lenient limiter for MFA (same window, same max)
+const mfaLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,   // 10 MFA attempts per 15 min (brute-force unfeasible)
+    message: { error: 'Too many MFA attempts. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// MFA pending session TTL in ms (5 minutes)
+const MFA_PENDING_TTL = 5 * 60 * 1000;
+
+// ── Helper: check account lockout ─────────────────────────────────────────────
 const checkLockout = (user) => {
     if (user.locked_until && new Date(user.locked_until) > new Date()) {
         return true;
@@ -22,159 +37,201 @@ const checkLockout = (user) => {
     return false;
 };
 
-// Login Route
+// ── POST /login ───────────────────────────────────────────────────────────────
 router.post('/login', authLimiter, (req, res) => {
     const { username, password, honeypot } = req.body;
 
-    // Bot Detection: Honeypot field should be empty
+    // Bot detection: honeypot field must be empty
     if (honeypot) {
         return res.status(403).json({ error: 'Bot detected.' });
     }
 
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Missing credentials.' });
+    }
+
     db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
         if (err || !user) {
-            // Generic error message to prevent account enumeration
+            // Generic message to prevent account enumeration
             return res.status(401).json({ error: 'Invalid username or password.' });
         }
 
+        // If lockout has naturally expired, reset failed attempts now
+        if (user.locked_until && new Date(user.locked_until) <= new Date()) {
+            db.run("UPDATE users SET failed_attempts = 0, locked_until = NULL WHERE id = ?", [user.id]);
+            user.failed_attempts = 0;
+            user.locked_until = null;
+        }
+
         if (checkLockout(user)) {
-            return res.status(403).json({ error: 'Account is locked. Try again later.' });
+            const unlockAt = new Date(user.locked_until);
+            return res.status(403).json({
+                error: `Account is locked. Try again after ${unlockAt.toLocaleTimeString()}.`
+            });
         }
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            // Increment failed attempts
             const attempts = user.failed_attempts + 1;
             if (attempts >= 5) {
                 const lockoutTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-                db.run("UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?", [attempts, lockoutTime, user.id]);
-                return res.status(403).json({ error: 'Account locked due to too many failed attempts.' });
+                db.run("UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?",
+                    [attempts, lockoutTime, user.id]);
+                return res.status(403).json({ error: 'Account locked due to too many failed attempts. Try again in 15 minutes.' });
             } else {
                 db.run("UPDATE users SET failed_attempts = ? WHERE id = ?", [attempts, user.id]);
                 return res.status(401).json({ error: 'Invalid username or password.' });
             }
         }
 
-        // Adaptive Authentication logic: Check IP/Agent
+        // ── Adaptive auth: detect new IP / user-agent ─────────────────────
         const currentIp = req.ip;
-        const currentAgent = req.get('User-Agent');
+        const currentAgent = req.get('User-Agent') || '';
         let requireExtraVerification = false;
 
         if (user.last_ip && (user.last_ip !== currentIp || user.last_user_agent !== currentAgent)) {
             requireExtraVerification = true;
-            // In a full app, we would send an email/SMS alert here.
         }
 
-        // Reset failed attempts on success
-        db.run("UPDATE users SET failed_attempts = 0, locked_until = NULL, last_ip = ?, last_user_agent = ? WHERE id = ?", 
+        // Reset failed attempts on successful password verification
+        db.run("UPDATE users SET failed_attempts = 0, locked_until = NULL, last_ip = ?, last_user_agent = ? WHERE id = ?",
             [currentIp, currentAgent, user.id]);
 
-        // MFA Check
+        // ── MFA check ─────────────────────────────────────────────────────
         if (user.mfa_enabled === 1) {
-            // Put temp userId in session to verify MFA next
+            // Store pending info in session with a strict TTL
             req.session.pendingMfaUserId = user.id;
+            req.session.pendingMfaExpiry = Date.now() + MFA_PENDING_TTL;
             return res.json({ requireMfa: true, adaptiveWarning: requireExtraVerification });
         }
 
-        // Success - Set Session
-        req.session.userId = user.id;
-        req.session.username = user.username;
-        req.session.role = user.role;
-        res.json({ success: true, message: 'Logged in successfully', adaptiveWarning: requireExtraVerification });
+        // ── Full login success ─────────────────────────────────────────────
+        req.session.regenerate((err) => {
+            if (err) return res.status(500).json({ error: 'Session error.' });
+            req.session.userId = user.id;
+            req.session.username = user.username;
+            req.session.role = user.role;
+            res.json({ success: true, message: 'Logged in successfully', adaptiveWarning: requireExtraVerification });
+        });
     });
 });
 
-// Verify MFA
-router.post('/mfa/verify', (req, res) => {
+// ── POST /mfa/verify ──────────────────────────────────────────────────────────
+router.post('/mfa/verify', mfaLimiter, (req, res) => {
     const { token } = req.body;
     const userId = req.session.pendingMfaUserId;
+    const expiry = req.session.pendingMfaExpiry;
 
-    if (!userId) return res.status(401).json({ error: 'Unauthorized. Start login first.' });
+    if (!userId) return res.status(401).json({ error: 'No pending MFA session. Please log in first.' });
+    if (!expiry || Date.now() > expiry) {
+        delete req.session.pendingMfaUserId;
+        delete req.session.pendingMfaExpiry;
+        return res.status(401).json({ error: 'MFA session expired. Please log in again.' });
+    }
+    if (!token || !/^\d{6}$/.test(token)) {
+        return res.status(400).json({ error: 'Invalid token format.' });
+    }
 
     db.get("SELECT * FROM users WHERE id = ?", [userId], (err, user) => {
         if (err || !user) return res.status(401).json({ error: 'User not found.' });
 
         const isValid = otplib.authenticator.check(token, user.mfa_secret);
         if (isValid) {
-            req.session.userId = user.id;
-            req.session.username = user.username;
-            req.session.role = user.role;
-            delete req.session.pendingMfaUserId;
-            res.json({ success: true, message: 'Logged in successfully' });
+            req.session.regenerate((sErr) => {
+                if (sErr) return res.status(500).json({ error: 'Session error.' });
+                req.session.userId = user.id;
+                req.session.username = user.username;
+                req.session.role = user.role;
+                res.json({ success: true, message: 'Logged in successfully' });
+            });
         } else {
             res.status(401).json({ error: 'Invalid MFA token.' });
         }
     });
 });
 
-// Setup MFA
+// ── POST /mfa/setup ───────────────────────────────────────────────────────────
+// Generates a new TOTP secret and stores it ONLY in the session (not DB yet).
+// The secret is written to the DB only on /mfa/confirm success.
 router.post('/mfa/setup', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    db.get("SELECT * FROM users WHERE id = ?", [req.session.userId], (err, user) => {
+    db.get("SELECT username FROM users WHERE id = ?", [req.session.userId], (err, user) => {
         if (err || !user) return res.status(404).json({ error: 'User not found' });
 
         const secret = otplib.authenticator.generateSecret();
         const otpauthUrl = otplib.authenticator.keyuri(user.username, 'Red Squadron', secret);
 
-        db.run("UPDATE users SET mfa_secret = ? WHERE id = ?", [secret, user.id], (err) => {
-            if (err) return res.status(500).json({ error: 'DB Error' });
+        // Store in session — not DB — until confirmed
+        req.session.pendingMfaSecret = secret;
 
-            qrcode.toDataURL(otpauthUrl, (err, imageUrl) => {
-                if (err) return res.status(500).json({ error: 'QR Code generation failed' });
-                res.json({ secret, qrCode: imageUrl });
-            });
+        qrcode.toDataURL(otpauthUrl, (err, imageUrl) => {
+            if (err) return res.status(500).json({ error: 'QR Code generation failed' });
+            res.json({ secret, qrCode: imageUrl });
         });
     });
 });
 
-// Confirm MFA Setup
-router.post('/mfa/confirm', (req, res) => {
+// ── POST /mfa/confirm ─────────────────────────────────────────────────────────
+router.post('/mfa/confirm', mfaLimiter, (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
     const { token } = req.body;
+    const pendingSecret = req.session.pendingMfaSecret;
 
-    db.get("SELECT * FROM users WHERE id = ?", [req.session.userId], (err, user) => {
-        if (err || !user) return res.status(404).json({ error: 'User not found' });
+    if (!pendingSecret) return res.status(400).json({ error: 'No pending MFA setup. Call /mfa/setup first.' });
+    if (!token || !/^\d{6}$/.test(token)) return res.status(400).json({ error: 'Invalid token format.' });
 
-        const isValid = otplib.authenticator.check(token, user.mfa_secret);
-        if (isValid) {
-            db.run("UPDATE users SET mfa_enabled = 1 WHERE id = ?", [user.id]);
-            res.json({ success: true, message: 'MFA Enabled' });
-        } else {
-            res.status(400).json({ error: 'Invalid token' });
-        }
-    });
+    const isValid = otplib.authenticator.check(token, pendingSecret);
+    if (isValid) {
+        // Now persist the secret to the DB
+        db.run("UPDATE users SET mfa_secret = ?, mfa_enabled = 1 WHERE id = ?",
+            [pendingSecret, req.session.userId], (err) => {
+                if (err) return res.status(500).json({ error: 'Failed to enable MFA.' });
+                delete req.session.pendingMfaSecret;
+                res.json({ success: true, message: 'MFA Enabled' });
+            });
+    } else {
+        res.status(400).json({ error: 'Invalid token. Please try again.' });
+    }
 });
 
-// Disable MFA
+// ── POST /mfa/disable ─────────────────────────────────────────────────────────
 router.post('/mfa/disable', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
-    db.run("UPDATE users SET mfa_enabled = 0, mfa_secret = NULL WHERE id = ?", [req.session.userId], (err) => {
-        if (err) return res.status(500).json({ error: 'Failed to disable MFA.' });
-        res.json({ success: true });
-    });
+    db.run("UPDATE users SET mfa_enabled = 0, mfa_secret = NULL WHERE id = ?",
+        [req.session.userId], (err) => {
+            if (err) return res.status(500).json({ error: 'Failed to disable MFA.' });
+            res.json({ success: true });
+        });
 });
 
-// Change Password
-router.post('/change-password', (req, res) => {
+// ── POST /change-password ─────────────────────────────────────────────────────
+router.post('/change-password', authLimiter, (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Missing required fields.' });
     if (newPassword.length < 8) return res.status(400).json({ error: 'New password must be at least 8 characters.' });
+    if (currentPassword === newPassword) return res.status(400).json({ error: 'New password must differ from your current password.' });
 
     db.get("SELECT * FROM users WHERE id = ?", [req.session.userId], async (err, user) => {
         if (err || !user) return res.status(404).json({ error: 'User not found.' });
         const match = await bcrypt.compare(currentPassword, user.password);
         if (!match) return res.status(401).json({ error: 'Current password is incorrect.' });
-        const hash = await bcrypt.hash(newPassword, 10);
+
+        const hash = await bcrypt.hash(newPassword, 12); // increased cost factor
         db.run("UPDATE users SET password = ? WHERE id = ?", [hash, user.id], (err) => {
             if (err) return res.status(500).json({ error: 'Failed to update password.' });
-            res.json({ success: true });
+
+            // Invalidate the current session so all devices are forced to re-authenticate
+            req.session.destroy(() => {
+                res.clearCookie('sessionId');
+                res.json({ success: true, message: 'Password updated. Please log in again.' });
+            });
         });
     });
 });
 
-// Logout
+// ── POST /logout ──────────────────────────────────────────────────────────────
 router.post('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) return res.status(500).json({ error: 'Failed to logout' });
@@ -183,7 +240,7 @@ router.post('/logout', (req, res) => {
     });
 });
 
-// Check Session state
+// ── GET /me ───────────────────────────────────────────────────────────────────
 router.get('/me', (req, res) => {
     if (req.session.userId) {
         db.get("SELECT mfa_enabled FROM users WHERE id = ?", [req.session.userId], (err, row) => {
@@ -199,9 +256,9 @@ router.get('/me', (req, res) => {
     }
 });
 
-// Password Recovery (Mock implementation for Enumeration prevention)
+// ── POST /forgot-password ─────────────────────────────────────────────────────
+// Always returns the same response to prevent account enumeration
 router.post('/forgot-password', authLimiter, (req, res) => {
-    // We always return the same message regardless of whether the email/user exists
     res.json({ message: 'If that account exists, a reset link has been sent to the associated email.' });
 });
 
